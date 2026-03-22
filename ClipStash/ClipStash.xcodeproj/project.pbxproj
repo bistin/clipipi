@@ -15,7 +15,28 @@
 		A10006 /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20006 /* HotkeyManager.swift */; };
 		A10007 /* PanelManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20007 /* PanelManager.swift */; };
 		A10008 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20008 /* Assets.xcassets */; };
+		A10009 /* Task.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20011 /* Task.swift */; };
+		A10010 /* TaskManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20012 /* TaskManager.swift */; };
+		A10011 /* TaskModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20013 /* TaskModeView.swift */; };
+		A10012 /* WindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20014 /* WindowManager.swift */; };
+		A10013 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20015 /* SettingsView.swift */; };
+		A10014 /* OCRManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20016 /* OCRManager.swift */; };
+		T10001 /* ClipItemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20001 /* ClipItemTests.swift */; };
+		T10002 /* ContentSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20002 /* ContentSourceTests.swift */; };
+		T10003 /* ClipTaskTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20003 /* ClipTaskTests.swift */; };
+		T10004 /* ClipboardManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20004 /* ClipboardManagerTests.swift */; };
+		T10005 /* TaskManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20005 /* TaskManagerTests.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		T30001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B00001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A60001;
+			remoteInfo = ClipStash;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		A20001 /* ClipStashApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipStashApp.swift; sourceTree = "<group>"; };
@@ -28,11 +49,30 @@
 		A20008 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A20009 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A20010 /* ClipStash.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClipStash.entitlements; sourceTree = "<group>"; };
+		A20011 /* Task.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Task.swift; sourceTree = "<group>"; };
+		A20012 /* TaskManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskManager.swift; sourceTree = "<group>"; };
+		A20013 /* TaskModeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskModeView.swift; sourceTree = "<group>"; };
+		A20014 /* WindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowManager.swift; sourceTree = "<group>"; };
+		A20015 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A20016 /* OCRManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRManager.swift; sourceTree = "<group>"; };
 		A30001 /* ClipStash.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClipStash.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		T20001 /* ClipItemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipItemTests.swift; sourceTree = "<group>"; };
+		T20002 /* ContentSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentSourceTests.swift; sourceTree = "<group>"; };
+		T20003 /* ClipTaskTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipTaskTests.swift; sourceTree = "<group>"; };
+		T20004 /* ClipboardManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardManagerTests.swift; sourceTree = "<group>"; };
+		T20005 /* TaskManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskManagerTests.swift; sourceTree = "<group>"; };
+		T30002 /* ClipStashTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClipStashTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		A40001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		T40001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -46,6 +86,7 @@
 			isa = PBXGroup;
 			children = (
 				A50002 /* ClipStash */,
+				T50001 /* ClipStashTests */,
 				A50003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -69,6 +110,7 @@
 			isa = PBXGroup;
 			children = (
 				A30001 /* ClipStash.app */,
+				T30002 /* ClipStashTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -78,6 +120,8 @@
 			children = (
 				A20002 /* MenuBarView.swift */,
 				A20003 /* ClipItemRow.swift */,
+				A20013 /* TaskModeView.swift */,
+				A20015 /* SettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -86,6 +130,7 @@
 			isa = PBXGroup;
 			children = (
 				A20005 /* ClipboardManager.swift */,
+				A20012 /* TaskManager.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -94,6 +139,7 @@
 			isa = PBXGroup;
 			children = (
 				A20004 /* ClipItem.swift */,
+				A20011 /* Task.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -103,8 +149,22 @@
 			children = (
 				A20006 /* HotkeyManager.swift */,
 				A20007 /* PanelManager.swift */,
+				A20014 /* WindowManager.swift */,
+				A20016 /* OCRManager.swift */,
 			);
 			path = Managers;
+			sourceTree = "<group>";
+		};
+		T50001 /* ClipStashTests */ = {
+			isa = PBXGroup;
+			children = (
+				T20001 /* ClipItemTests.swift */,
+				T20002 /* ContentSourceTests.swift */,
+				T20003 /* ClipTaskTests.swift */,
+				T20004 /* ClipboardManagerTests.swift */,
+				T20005 /* TaskManagerTests.swift */,
+			);
+			path = ClipStashTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -127,6 +187,23 @@
 			productReference = A30001 /* ClipStash.app */;
 			productType = "com.apple.product-type.application";
 		};
+		T60001 /* ClipStashTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = T70001 /* Build configuration list for PBXNativeTarget "ClipStashTests" */;
+			buildPhases = (
+				T80001 /* Sources */,
+				T40001 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				T30003 /* PBXTargetDependency */,
+			);
+			name = ClipStashTests;
+			productName = ClipStashTests;
+			productReference = T30002 /* ClipStashTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -139,6 +216,10 @@
 				TargetAttributes = {
 					A60001 = {
 						CreatedOnToolsVersion = 15.0;
+					};
+					T60001 = {
+						CreatedOnToolsVersion = 15.0;
+						TestTargetID = A60001;
 					};
 				};
 			};
@@ -156,6 +237,7 @@
 			projectRoot = "";
 			targets = (
 				A60001 /* ClipStash */,
+				T60001 /* ClipStashTests */,
 			);
 		};
 /* End PBXProject section */
@@ -183,10 +265,36 @@
 				A10005 /* ClipboardManager.swift in Sources */,
 				A10006 /* HotkeyManager.swift in Sources */,
 				A10007 /* PanelManager.swift in Sources */,
+				A10009 /* Task.swift in Sources */,
+				A10010 /* TaskManager.swift in Sources */,
+				A10011 /* TaskModeView.swift in Sources */,
+				A10012 /* WindowManager.swift in Sources */,
+				A10013 /* SettingsView.swift in Sources */,
+				A10014 /* OCRManager.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		T80001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				T10001 /* ClipItemTests.swift in Sources */,
+				T10002 /* ContentSourceTests.swift in Sources */,
+				T10003 /* ClipTaskTests.swift in Sources */,
+				T10004 /* ClipboardManagerTests.swift in Sources */,
+				T10005 /* TaskManagerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		T30003 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A60001 /* ClipStash */;
+			targetProxy = T30001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		C10001 /* Debug */ = {
@@ -367,6 +475,42 @@
 			};
 			name = Release;
 		};
+		TC0001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clipstash.app.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ClipStash.app/Contents/MacOS/ClipStash";
+			};
+			name = Debug;
+		};
+		TC0002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clipstash.app.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ClipStash.app/Contents/MacOS/ClipStash";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -384,6 +528,15 @@
 			buildConfigurations = (
 				C20001 /* Debug */,
 				C20002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		T70001 /* Build configuration list for PBXNativeTarget "ClipStashTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				TC0001 /* Debug */,
+				TC0002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

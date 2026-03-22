@@ -2,37 +2,129 @@ import Foundation
 import AppKit
 import Carbon
 
+/// 快捷鍵設定
+struct HotkeySettings: Codable, Equatable {
+    var keyCode: UInt16 = 0x09  // V
+    var modifierFlags: UInt64 = CGEventFlags([.maskCommand, .maskShift]).rawValue
+
+    var cgModifiers: CGEventFlags {
+        CGEventFlags(rawValue: modifierFlags)
+    }
+
+    /// 顯示用字串，如 "⌘⇧V"
+    var displayString: String {
+        var parts: [String] = []
+        let flags = cgModifiers
+        if flags.contains(.maskControl) { parts.append("⌃") }
+        if flags.contains(.maskAlternate) { parts.append("⌥") }
+        if flags.contains(.maskShift) { parts.append("⇧") }
+        if flags.contains(.maskCommand) { parts.append("⌘") }
+        parts.append(keyCodeToString(keyCode))
+        return parts.joined()
+    }
+
+    private func keyCodeToString(_ code: UInt16) -> String {
+        let keyMap: [UInt16: String] = [
+            0x00: "A", 0x01: "S", 0x02: "D", 0x03: "F", 0x04: "H",
+            0x05: "G", 0x06: "Z", 0x07: "X", 0x08: "C", 0x09: "V",
+            0x0B: "B", 0x0C: "Q", 0x0D: "W", 0x0E: "E", 0x0F: "R",
+            0x10: "Y", 0x11: "T", 0x12: "1", 0x13: "2", 0x14: "3",
+            0x15: "4", 0x16: "6", 0x17: "5", 0x19: "9", 0x1A: "7",
+            0x1C: "8", 0x1D: "0", 0x1F: "O", 0x20: "U", 0x22: "I",
+            0x23: "P", 0x25: "L", 0x26: "J", 0x28: "K", 0x2D: "N",
+            0x2E: "M",
+        ]
+        return keyMap[code] ?? "?"
+    }
+}
+
 @MainActor
-final class HotkeyManager: Sendable {
+final class HotkeyManager: ObservableObject, Sendable {
     static let shared = HotkeyManager()
+
+    @Published private(set) var settings: HotkeySettings
 
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
+    private var permissionCheckTimer: Timer?
+    private var lastPermissionState: Bool = false
 
-    private init() {}
+    private static let settingsKey = "clip_stash_hotkey_settings"
 
-    func start() {
-        print("ClipStash: HotkeyManager.start() called")
+    /// 全域可存取的當前設定（供 static callback 使用）
+    nonisolated(unsafe) private static var currentKeyCode: UInt16 = 0x09
+    nonisolated(unsafe) private static var currentModifiers: UInt64 = CGEventFlags([.maskCommand, .maskShift]).rawValue
 
-        // 檢查輔助使用權限
-        let trusted = checkAccessibilityPermission()
-        print("ClipStash: Accessibility permission = \(trusted)")
-
-        if !trusted {
-            print("ClipStash: 需要輔助使用權限，請在系統設定中授權後重啟 App")
-            return
+    private init() {
+        if let data = UserDefaults.standard.data(forKey: Self.settingsKey),
+           let saved = try? JSONDecoder().decode(HotkeySettings.self, from: data) {
+            self.settings = saved
+        } else {
+            self.settings = HotkeySettings()
         }
-
-        setupEventTap()
+        Self.currentKeyCode = settings.keyCode
+        Self.currentModifiers = settings.modifierFlags
     }
 
-    nonisolated private func checkAccessibilityPermission() -> Bool {
-        // "AXTrustedCheckOptionPrompt" 是 kAXTrustedCheckOptionPrompt 的實際字串值
-        let options = ["AXTrustedCheckOptionPrompt": true] as CFDictionary
+    func updateSettings(_ newSettings: HotkeySettings) {
+        settings = newSettings
+        Self.currentKeyCode = newSettings.keyCode
+        Self.currentModifiers = newSettings.modifierFlags
+
+        if let encoded = try? JSONEncoder().encode(newSettings) {
+            UserDefaults.standard.set(encoded, forKey: Self.settingsKey)
+        }
+
+        // 重新設定 event tap 以套用新快捷鍵
+        if lastPermissionState {
+            stopEventTap()
+            setupEventTap()
+        }
+    }
+
+    func start() {
+        let trusted = checkAccessibilityPermission(showPrompt: true)
+        lastPermissionState = trusted
+
+        if trusted {
+            setupEventTap()
+        }
+
+        startPermissionCheck()
+    }
+
+    nonisolated private func checkAccessibilityPermission(showPrompt: Bool) -> Bool {
+        let options = ["AXTrustedCheckOptionPrompt": showPrompt] as CFDictionary
         return AXIsProcessTrustedWithOptions(options)
     }
 
+    private func startPermissionCheck() {
+        permissionCheckTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                self?.recheckPermission()
+            }
+        }
+    }
+
+    private func recheckPermission() {
+        let currentState = checkAccessibilityPermission(showPrompt: false)
+
+        if currentState && !lastPermissionState {
+            setupEventTap()
+        } else if !currentState && lastPermissionState {
+            stopEventTap()
+        }
+
+        lastPermissionState = currentState
+    }
+
     func stop() {
+        permissionCheckTimer?.invalidate()
+        permissionCheckTimer = nil
+        stopEventTap()
+    }
+
+    private func stopEventTap() {
         if let runLoopSource = runLoopSource {
             CFRunLoopRemoveSource(CFRunLoopGetMain(), runLoopSource, .commonModes)
         }
@@ -56,21 +148,16 @@ final class HotkeyManager: Sendable {
             },
             userInfo: nil
         ) else {
-            print("ClipStash: 無法建立事件監聽器")
             return
         }
 
         eventTap = tap
-
         runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
         CFRunLoopAddSource(CFRunLoopGetMain(), runLoopSource, .commonModes)
         CGEvent.tapEnable(tap: tap, enable: true)
-
-        print("ClipStash: 全域快捷鍵已啟用")
     }
 
     nonisolated private static func handleEventStatic(proxy: CGEventTapProxy, type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
-        // 如果 tap 被系統停用，重新啟用
         if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
             return Unmanaged.passRetained(event)
         }
@@ -82,25 +169,27 @@ final class HotkeyManager: Sendable {
         let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
         let flags = event.flags
 
-        // 檢查 ⌘⇧V (keyCode 0x09 = V, 需要 Command + Shift)
-        let isCommandPressed = flags.contains(.maskCommand)
-        let isShiftPressed = flags.contains(.maskShift)
-        let isVKey = keyCode == 0x09
+        // 從全域設定讀取目標快捷鍵
+        let targetKeyCode = currentKeyCode
+        let targetModifiers = CGEventFlags(rawValue: currentModifiers)
 
-        if isVKey && isCommandPressed && isShiftPressed {
-            // 確保沒有其他修飾鍵（如 Option, Control）
-            let unwantedFlags: CGEventFlags = [.maskAlternate, .maskControl]
-            let hasUnwantedFlags = !flags.intersection(unwantedFlags).isEmpty
+        guard keyCode == Int64(targetKeyCode) else {
+            return Unmanaged.passRetained(event)
+        }
 
-            if !hasUnwantedFlags {
-                DispatchQueue.main.async {
-                    PanelManager.shared.togglePanel()
-                }
-                // 吃掉事件，不傳遞給其他 App
-                return nil
+        // 檢查所需的修飾鍵
+        let requiredFlags: [CGEventFlags] = [.maskCommand, .maskShift, .maskAlternate, .maskControl]
+        for flag in requiredFlags {
+            let required = targetModifiers.contains(flag)
+            let pressed = flags.contains(flag)
+            if required != pressed {
+                return Unmanaged.passRetained(event)
             }
         }
 
-        return Unmanaged.passRetained(event)
+        DispatchQueue.main.async {
+            PanelManager.shared.togglePanel()
+        }
+        return nil
     }
 }

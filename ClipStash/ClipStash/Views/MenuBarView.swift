@@ -2,8 +2,11 @@ import SwiftUI
 
 struct MenuBarView: View {
     @ObservedObject private var clipboardManager = ClipboardManager.shared
+    @ObservedObject private var taskManager = TaskManager.shared
     @FocusState private var isSearchFocused: Bool
     @State private var showHelp = false
+    @State private var showFilters = false
+    @State private var showSettings = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -17,6 +20,11 @@ struct MenuBarView: View {
             } else {
                 // 搜尋框
                 searchBar
+
+                // 篩選列
+                if showFilters || clipboardManager.hasActiveFilters {
+                    filterBar
+                }
 
                 Divider()
 
@@ -62,6 +70,16 @@ struct MenuBarView: View {
             }
             return .ignored
         }
+        // ⌘1~9 快速貼上
+        .onKeyPress(keys: [.init("1"), .init("2"), .init("3"), .init("4"), .init("5"), .init("6"), .init("7"), .init("8"), .init("9")]) { press in
+            if press.modifiers.contains(.command) {
+                if let num = Int(press.characters), num >= 1, num <= 9 {
+                    clipboardManager.pasteItemAtIndex(num - 1)
+                    return .handled
+                }
+            }
+            return .ignored
+        }
     }
 
     // MARK: - Header
@@ -72,6 +90,29 @@ struct MenuBarView: View {
                 .font(.headline)
 
             Spacer()
+
+            // 任務模式按鈕
+            Button(action: {
+                WindowManager.shared.openTaskModeWindow()
+                PanelManager.shared.hidePanel()
+            }) {
+                Image(systemName: "checklist")
+                    .font(.system(size: 14))
+                    .foregroundStyle(taskManager.activeTasks.isEmpty ? .secondary : Color.accentColor)
+            }
+            .buttonStyle(.plain)
+            .help("任務模式")
+
+            // 當前任務指示器
+            if let activeTask = taskManager.activeTask {
+                Text(activeTask.name)
+                    .font(.caption)
+                    .lineLimit(1)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.accentColor.opacity(0.2))
+                    .cornerRadius(4)
+            }
 
             Button(action: {
                 withAnimation(.easeInOut(duration: 0.2)) {
@@ -100,6 +141,7 @@ struct MenuBarView: View {
             VStack(alignment: .leading, spacing: 16) {
                 helpSection(title: "快捷鍵", items: [
                     ("⌘⇧V", "開啟/關閉視窗"),
+                    ("⌘1~9", "快速貼上前 9 筆"),
                     ("↑ / ↓", "選擇項目"),
                     ("Enter", "貼上選中項目"),
                     ("Esc", "關閉視窗"),
@@ -119,10 +161,20 @@ struct MenuBarView: View {
                     ("💻", "程式碼")
                 ])
 
+                helpSection(title: "搜尋篩選", items: [
+                    ("/pattern/", "正則表達式搜尋"),
+                    ("篩選按鈕", "按類型、來源、標籤篩選"),
+                ])
+
                 helpSection(title: "其他", items: [
                     ("自動記錄", "最多保留 100 筆"),
                     ("釘選項目", "不受數量限制"),
                     ("資料儲存", "自動保存，重啟不遺失")
+                ])
+
+                helpSection(title: "權限設定", items: [
+                    ("輔助使用", "系統設定 → 隱私與安全性 → 輔助使用"),
+                    ("自動偵測", "授權後約 2 秒內自動生效")
                 ])
             }
             .padding(16)
@@ -158,7 +210,7 @@ struct MenuBarView: View {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(.secondary)
 
-            TextField("搜尋剪貼簿...", text: $clipboardManager.searchText)
+            TextField("搜尋（/regex/ 正則）", text: $clipboardManager.searchText)
                 .textFieldStyle(.plain)
                 .focused($isSearchFocused)
 
@@ -171,9 +223,118 @@ struct MenuBarView: View {
                 }
                 .buttonStyle(.plain)
             }
+
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.15)) {
+                    showFilters.toggle()
+                }
+            }) {
+                Image(systemName: "line.3.horizontal.decrease.circle\(showFilters || clipboardManager.hasActiveFilters ? ".fill" : "")")
+                    .font(.system(size: 14))
+                    .foregroundStyle(clipboardManager.hasActiveFilters ? Color.accentColor : .secondary)
+            }
+            .buttonStyle(.plain)
+            .help("篩選")
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
+    }
+
+    // MARK: - Filter Bar
+
+    private var filterBar: some View {
+        VStack(spacing: 6) {
+            // 類型篩選
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    Text("類型")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+
+                    ForEach([ClipItem.ClipType.text, .url, .code, .image], id: \.self) { type in
+                        filterChip(
+                            label: type.displayName,
+                            icon: type.iconName,
+                            isSelected: clipboardManager.filterType == type
+                        ) {
+                            clipboardManager.filterType = clipboardManager.filterType == type ? nil : type
+                        }
+                    }
+
+                    Divider()
+                        .frame(height: 16)
+
+                    Text("來源")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+
+                    ForEach(ContentSource.allCases.filter { $0 != .unknown }, id: \.self) { source in
+                        filterChip(
+                            label: source.rawValue,
+                            icon: source.iconName,
+                            isSelected: clipboardManager.filterSource == source
+                        ) {
+                            clipboardManager.filterSource = clipboardManager.filterSource == source ? nil : source
+                        }
+                    }
+                }
+            }
+
+            // 標籤篩選（僅在有標籤時顯示）
+            if !clipboardManager.allTags.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        Text("標籤")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+
+                        ForEach(clipboardManager.allTags, id: \.self) { tag in
+                            filterChip(
+                                label: tag,
+                                icon: "tag",
+                                isSelected: clipboardManager.filterTag == tag
+                            ) {
+                                clipboardManager.filterTag = clipboardManager.filterTag == tag ? nil : tag
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 清除篩選
+            if clipboardManager.hasActiveFilters {
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        clipboardManager.clearFilters()
+                    }) {
+                        Text("清除篩選")
+                            .font(.caption)
+                            .foregroundStyle(Color.accentColor)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+    }
+
+    private func filterChip(label: String, icon: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 3) {
+                Image(systemName: icon)
+                    .font(.system(size: 9))
+                Text(label)
+                    .font(.caption2)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(isSelected ? Color.accentColor.opacity(0.2) : Color.gray.opacity(0.1))
+            .foregroundStyle(isSelected ? Color.accentColor : .secondary)
+            .cornerRadius(10)
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Item List
@@ -187,10 +348,14 @@ struct MenuBarView: View {
                         ForEach(clipboardManager.pinnedItems) { item in
                             ClipItemRow(
                                 item: item,
+                                index: clipboardManager.indexOfItem(item),
                                 isSelected: clipboardManager.selectedItemId == item.id,
                                 onPaste: { clipboardManager.pasteItem(item) },
+                                onPasteWithFormat: { format in clipboardManager.pasteItem(item, format: format) },
                                 onTogglePin: { clipboardManager.togglePin(item) },
-                                onDelete: { clipboardManager.deleteItem(item) }
+                                onDelete: { clipboardManager.deleteItem(item) },
+                                onAddTag: { tag in clipboardManager.addTag(tag, to: item) },
+                                onRemoveTag: { tag in clipboardManager.removeTag(tag, from: item) }
                             )
                             .id(item.id)
                         }
@@ -206,10 +371,14 @@ struct MenuBarView: View {
                     ForEach(clipboardManager.unpinnedItems) { item in
                         ClipItemRow(
                             item: item,
+                            index: clipboardManager.indexOfItem(item),
                             isSelected: clipboardManager.selectedItemId == item.id,
                             onPaste: { clipboardManager.pasteItem(item) },
+                            onPasteWithFormat: { format in clipboardManager.pasteItem(item, format: format) },
                             onTogglePin: { clipboardManager.togglePin(item) },
-                            onDelete: { clipboardManager.deleteItem(item) }
+                            onDelete: { clipboardManager.deleteItem(item) },
+                            onAddTag: { tag in clipboardManager.addTag(tag, to: item) },
+                            onRemoveTag: { tag in clipboardManager.removeTag(tag, from: item) }
                         )
                         .id(item.id)
                     }
@@ -266,6 +435,19 @@ struct MenuBarView: View {
             .disabled(clipboardManager.unpinnedItems.isEmpty)
 
             Spacer()
+
+            Button(action: {
+                showSettings = true
+            }) {
+                Image(systemName: "gearshape")
+                    .font(.caption)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.secondary)
+            .help("設定")
+            .sheet(isPresented: $showSettings) {
+                SettingsView()
+            }
 
             Button(action: {
                 NSApp.terminate(nil)

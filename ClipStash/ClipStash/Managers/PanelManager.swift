@@ -13,6 +13,8 @@ final class PanelManager: NSObject, Sendable {
 
     private var panel: KeyablePanel?
     private var visualEffectView: NSVisualEffectView?
+    /// 開啟 panel 前的 App，貼上後要把焦點還給它
+    private var previousApp: NSRunningApplication?
 
     var isVisible: Bool {
         panel?.isVisible ?? false
@@ -99,6 +101,9 @@ final class PanelManager: NSObject, Sendable {
             panel.setFrame(NSRect(x: x, y: y, width: panelWidth, height: panelHeight), display: true)
         }
 
+        // 記住當前焦點 App，貼上後還原
+        previousApp = NSWorkspace.shared.frontmostApplication
+
         print("ClipStash: showPanel - displaying at \(panel.frame)")
         panel.orderFrontRegardless()
         panel.makeKey()
@@ -113,6 +118,15 @@ final class PanelManager: NSObject, Sendable {
 
     func hidePanel() {
         panel?.orderOut(nil)
+    }
+
+    /// 關閉 panel 並將焦點還給之前的 App
+    func hidePanelAndRestoreFocus() {
+        panel?.orderOut(nil)
+        if let app = previousApp {
+            app.activate()
+            previousApp = nil
+        }
     }
 
     func togglePanel() {
