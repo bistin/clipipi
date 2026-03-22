@@ -1,4 +1,4 @@
-# ClipStash
+# Clipipi
 
 macOS 剪貼簿歷史管理工具，系統列常駐 App。
 
@@ -12,8 +12,8 @@ macOS 剪貼簿歷史管理工具，系統列常駐 App。
 ## 專案結構
 
 ```
-ClipStash/
-├── ClipStashApp.swift           # App 入口 + MenuBarExtra
+Clipipi/
+├── ClipipiApp.swift           # App 入口 + MenuBarExtra
 ├── Views/
 │   ├── MenuBarView.swift        # 主畫面 UI（標題、搜尋、列表、工具列、說明）
 │   └── ClipItemRow.swift        # 列表項目元件
@@ -26,7 +26,7 @@ ClipStash/
 │   └── PanelManager.swift       # NSPanel 懸浮視窗管理
 ├── Assets.xcassets/
 ├── Info.plist                   # LSUIElement = YES
-└── ClipStash.entitlements       # App Sandbox 關閉
+└── Clipipi.entitlements       # App Sandbox 關閉
 ```
 
 ## 核心功能
@@ -57,9 +57,9 @@ ClipStash/
 ## Build 指令
 
 ```bash
-cd ClipStash
-xcodebuild -scheme ClipStash -configuration Release archive -archivePath ./build/ClipStash.xcarchive
-cp -R ./build/ClipStash.xcarchive/Products/Applications/ClipStash.app /Applications/
+cd Clipipi
+xcodebuild -scheme Clipipi -configuration Release archive -archivePath ./build/Clipipi.xcarchive
+cp -R ./build/Clipipi.xcarchive/Products/Applications/Clipipi.app /Applications/
 ```
 
 ## 快捷鍵

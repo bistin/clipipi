@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import ClipStash
+@testable import Clipipi
 
 @Suite("ClipboardManager Tests")
 @MainActor

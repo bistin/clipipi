@@ -104,7 +104,7 @@ final class PanelManager: NSObject, Sendable {
         // 記住當前焦點 App，貼上後還原
         previousApp = NSWorkspace.shared.frontmostApplication
 
-        print("ClipStash: showPanel - displaying at \(panel.frame)")
+        print("Clipipi: showPanel - displaying at \(panel.frame)")
         panel.orderFrontRegardless()
         panel.makeKey()
 
@@ -130,7 +130,7 @@ final class PanelManager: NSObject, Sendable {
     }
 
     func togglePanel() {
-        print("ClipStash: togglePanel called, isVisible = \(isVisible)")
+        print("Clipipi: togglePanel called, isVisible = \(isVisible)")
         if isVisible {
             hidePanel()
         } else {

@@ -86,7 +86,7 @@ struct MenuBarView: View {
 
     private var headerView: some View {
         HStack {
-            Text("ClipStash")
+            Text("Clipipi")
                 .font(.headline)
 
             Spacer()

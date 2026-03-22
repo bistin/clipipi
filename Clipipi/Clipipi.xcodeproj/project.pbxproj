@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A10001 /* ClipStashApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20001 /* ClipStashApp.swift */; };
+		A10001 /* ClipipiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20001 /* ClipipiApp.swift */; };
 		A10002 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20002 /* MenuBarView.swift */; };
 		A10003 /* ClipItemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20003 /* ClipItemRow.swift */; };
 		A10004 /* ClipItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20004 /* ClipItem.swift */; };
@@ -34,12 +34,12 @@
 			containerPortal = B00001 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = A60001;
-			remoteInfo = ClipStash;
+			remoteInfo = Clipipi;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		A20001 /* ClipStashApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipStashApp.swift; sourceTree = "<group>"; };
+		A20001 /* ClipipiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipipiApp.swift; sourceTree = "<group>"; };
 		A20002 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		A20003 /* ClipItemRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipItemRow.swift; sourceTree = "<group>"; };
 		A20004 /* ClipItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipItem.swift; sourceTree = "<group>"; };
@@ -48,20 +48,20 @@
 		A20007 /* PanelManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelManager.swift; sourceTree = "<group>"; };
 		A20008 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A20009 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A20010 /* ClipStash.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClipStash.entitlements; sourceTree = "<group>"; };
+		A20010 /* Clipipi.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Clipipi.entitlements; sourceTree = "<group>"; };
 		A20011 /* Task.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Task.swift; sourceTree = "<group>"; };
 		A20012 /* TaskManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskManager.swift; sourceTree = "<group>"; };
 		A20013 /* TaskModeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskModeView.swift; sourceTree = "<group>"; };
 		A20014 /* WindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowManager.swift; sourceTree = "<group>"; };
 		A20015 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A20016 /* OCRManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRManager.swift; sourceTree = "<group>"; };
-		A30001 /* ClipStash.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClipStash.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A30001 /* Clipipi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Clipipi.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		T20001 /* ClipItemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipItemTests.swift; sourceTree = "<group>"; };
 		T20002 /* ContentSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentSourceTests.swift; sourceTree = "<group>"; };
 		T20003 /* ClipTaskTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipTaskTests.swift; sourceTree = "<group>"; };
 		T20004 /* ClipboardManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardManagerTests.swift; sourceTree = "<group>"; };
 		T20005 /* TaskManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskManagerTests.swift; sourceTree = "<group>"; };
-		T30002 /* ClipStashTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClipStashTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		T30002 /* ClipipiTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClipipiTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -85,32 +85,32 @@
 		A50001 = {
 			isa = PBXGroup;
 			children = (
-				A50002 /* ClipStash */,
-				T50001 /* ClipStashTests */,
+				A50002 /* Clipipi */,
+				T50001 /* ClipipiTests */,
 				A50003 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		A50002 /* ClipStash */ = {
+		A50002 /* Clipipi */ = {
 			isa = PBXGroup;
 			children = (
-				A20001 /* ClipStashApp.swift */,
+				A20001 /* ClipipiApp.swift */,
 				A50004 /* Views */,
 				A50005 /* ViewModels */,
 				A50006 /* Models */,
 				A50007 /* Managers */,
 				A20008 /* Assets.xcassets */,
 				A20009 /* Info.plist */,
-				A20010 /* ClipStash.entitlements */,
+				A20010 /* Clipipi.entitlements */,
 			);
-			path = ClipStash;
+			path = Clipipi;
 			sourceTree = "<group>";
 		};
 		A50003 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A30001 /* ClipStash.app */,
-				T30002 /* ClipStashTests.xctest */,
+				A30001 /* Clipipi.app */,
+				T30002 /* ClipipiTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -155,7 +155,7 @@
 			path = Managers;
 			sourceTree = "<group>";
 		};
-		T50001 /* ClipStashTests */ = {
+		T50001 /* ClipipiTests */ = {
 			isa = PBXGroup;
 			children = (
 				T20001 /* ClipItemTests.swift */,
@@ -164,15 +164,15 @@
 				T20004 /* ClipboardManagerTests.swift */,
 				T20005 /* TaskManagerTests.swift */,
 			);
-			path = ClipStashTests;
+			path = ClipipiTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		A60001 /* ClipStash */ = {
+		A60001 /* Clipipi */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A70001 /* Build configuration list for PBXNativeTarget "ClipStash" */;
+			buildConfigurationList = A70001 /* Build configuration list for PBXNativeTarget "Clipipi" */;
 			buildPhases = (
 				A80001 /* Sources */,
 				A40001 /* Frameworks */,
@@ -182,14 +182,14 @@
 			);
 			dependencies = (
 			);
-			name = ClipStash;
-			productName = ClipStash;
-			productReference = A30001 /* ClipStash.app */;
+			name = Clipipi;
+			productName = Clipipi;
+			productReference = A30001 /* Clipipi.app */;
 			productType = "com.apple.product-type.application";
 		};
-		T60001 /* ClipStashTests */ = {
+		T60001 /* ClipipiTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = T70001 /* Build configuration list for PBXNativeTarget "ClipStashTests" */;
+			buildConfigurationList = T70001 /* Build configuration list for PBXNativeTarget "ClipipiTests" */;
 			buildPhases = (
 				T80001 /* Sources */,
 				T40001 /* Frameworks */,
@@ -199,9 +199,9 @@
 			dependencies = (
 				T30003 /* PBXTargetDependency */,
 			);
-			name = ClipStashTests;
-			productName = ClipStashTests;
-			productReference = T30002 /* ClipStashTests.xctest */;
+			name = ClipipiTests;
+			productName = ClipipiTests;
+			productReference = T30002 /* ClipipiTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -223,7 +223,7 @@
 					};
 				};
 			};
-			buildConfigurationList = B10001 /* Build configuration list for PBXProject "ClipStash" */;
+			buildConfigurationList = B10001 /* Build configuration list for PBXProject "Clipipi" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -236,8 +236,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				A60001 /* ClipStash */,
-				T60001 /* ClipStashTests */,
+				A60001 /* Clipipi */,
+				T60001 /* ClipipiTests */,
 			);
 		};
 /* End PBXProject section */
@@ -258,7 +258,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A10001 /* ClipStashApp.swift in Sources */,
+				A10001 /* ClipipiApp.swift in Sources */,
 				A10002 /* MenuBarView.swift in Sources */,
 				A10003 /* ClipItemRow.swift in Sources */,
 				A10004 /* ClipItem.swift in Sources */,
@@ -291,7 +291,7 @@
 /* Begin PBXTargetDependency section */
 		T30003 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = A60001 /* ClipStash */;
+			target = A60001 /* Clipipi */;
 			targetProxy = T30001 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -422,7 +422,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = ClipStash/ClipStash.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Clipipi/Clipipi.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -430,7 +430,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = ClipStash/Info.plist;
+				INFOPLIST_FILE = Clipipi/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -438,7 +438,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.clipstash.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clipipi.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
@@ -451,7 +451,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = ClipStash/ClipStash.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Clipipi/Clipipi.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -459,7 +459,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = ClipStash/Info.plist;
+				INFOPLIST_FILE = Clipipi/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -467,7 +467,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.clipstash.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clipipi.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
@@ -484,12 +484,12 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.clipstash.app.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clipipi.app.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ClipStash.app/Contents/MacOS/ClipStash";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Clipipi.app/Contents/MacOS/Clipipi";
 			};
 			name = Debug;
 		};
@@ -502,19 +502,19 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.clipstash.app.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clipipi.app.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ClipStash.app/Contents/MacOS/ClipStash";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Clipipi.app/Contents/MacOS/Clipipi";
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		B10001 /* Build configuration list for PBXProject "ClipStash" */ = {
+		B10001 /* Build configuration list for PBXProject "Clipipi" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C10001 /* Debug */,
@@ -523,7 +523,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A70001 /* Build configuration list for PBXNativeTarget "ClipStash" */ = {
+		A70001 /* Build configuration list for PBXNativeTarget "Clipipi" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C20001 /* Debug */,
@@ -532,7 +532,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		T70001 /* Build configuration list for PBXNativeTarget "ClipStashTests" */ = {
+		T70001 /* Build configuration list for PBXNativeTarget "ClipipiTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				TC0001 /* Debug */,

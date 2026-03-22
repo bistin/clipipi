@@ -2,8 +2,8 @@ import WidgetKit
 import SwiftUI
 
 @main
-struct ClipStashWidgetBundle: WidgetBundle {
+struct ClipipiWidgetBundle: WidgetBundle {
     var body: some Widget {
-        ClipStashWidget()
+        ClipipiWidget()
     }
 }

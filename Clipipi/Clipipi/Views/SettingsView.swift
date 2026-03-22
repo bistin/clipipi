@@ -22,7 +22,7 @@ struct SettingsView: View {
                     .font(.headline)
 
                 HStack {
-                    Text("開啟 ClipStash：")
+                    Text("開啟 Clipipi：")
                         .foregroundStyle(.secondary)
 
                     Spacer()

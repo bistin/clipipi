@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import ClipStash
+@testable import Clipipi
 
 @Suite("ClipTask Tests")
 struct ClipTaskTests {
@@ -93,11 +93,11 @@ struct ClipTaskTests {
         #expect(md.contains("### GitHub"))
     }
 
-    @Test("Markdown 包含 ClipStash 簽名")
+    @Test("Markdown 包含 Clipipi 簽名")
     func markdownContainsSignature() {
         let task = ClipTask(name: "Task")
         let md = task.exportToMarkdown()
-        #expect(md.contains("ClipStash"))
+        #expect(md.contains("Clipipi"))
     }
 
     @Test("超過 100 字元的內容會截斷")

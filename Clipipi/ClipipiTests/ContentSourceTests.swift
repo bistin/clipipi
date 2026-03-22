@@ -1,5 +1,5 @@
 import Testing
-@testable import ClipStash
+@testable import Clipipi
 
 @Suite("ContentSource Tests")
 struct ContentSourceTests {

@@ -161,7 +161,7 @@ struct ClipTask: Identifiable, Codable, Hashable {
             }
         }
 
-        markdown += "\n---\n*匯出自 ClipStash*\n"
+        markdown += "\n---\n*匯出自 Clipipi*\n"
 
         return markdown
     }

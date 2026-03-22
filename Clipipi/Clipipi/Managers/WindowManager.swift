@@ -29,7 +29,7 @@ final class WindowManager: ObservableObject, Sendable {
         )
 
         window.contentView = NSHostingView(rootView: contentView)
-        window.title = "ClipStash - 任務模式"
+        window.title = "Clipipi - 任務模式"
         window.center()
         window.setFrameAutosaveName("TaskModeWindow")
         window.isReleasedWhenClosed = false

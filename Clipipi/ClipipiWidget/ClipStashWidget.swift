@@ -60,7 +60,7 @@ struct WidgetClipItem: Codable, Identifiable {
 
 // MARK: - Widget Views
 
-struct ClipStashWidgetEntryView: View {
+struct ClipipiWidgetEntryView: View {
     var entry: Provider.Entry
     @Environment(\.widgetFamily) var family
 
@@ -80,7 +80,7 @@ struct ClipStashWidgetEntryView: View {
             HStack {
                 Image(systemName: "clipboard")
                     .font(.caption)
-                Text("ClipStash")
+                Text("Clipipi")
                     .font(.caption.bold())
             }
             .foregroundStyle(.secondary)
@@ -115,7 +115,7 @@ struct ClipStashWidgetEntryView: View {
             HStack {
                 Image(systemName: "clipboard")
                     .font(.subheadline)
-                Text("ClipStash")
+                Text("Clipipi")
                     .font(.subheadline.bold())
                 Spacer()
                 Text("\(entry.items.count) 筆")
@@ -153,15 +153,15 @@ struct ClipStashWidgetEntryView: View {
 
 // MARK: - Widget Configuration
 
-struct ClipStashWidget: Widget {
-    let kind: String = "ClipStashWidget"
+struct ClipipiWidget: Widget {
+    let kind: String = "ClipipiWidget"
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
-            ClipStashWidgetEntryView(entry: entry)
+            ClipipiWidgetEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
-        .configurationDisplayName("ClipStash")
+        .configurationDisplayName("Clipipi")
         .description("顯示最近的剪貼簿歷史")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
@@ -170,7 +170,7 @@ struct ClipStashWidget: Widget {
 // MARK: - Preview
 
 #Preview(as: .systemSmall) {
-    ClipStashWidget()
+    ClipipiWidget()
 } timeline: {
     ClipEntry(date: .now, items: [
         WidgetClipItem(content: "Hello World", type: "text"),
@@ -180,7 +180,7 @@ struct ClipStashWidget: Widget {
 }
 
 #Preview(as: .systemMedium) {
-    ClipStashWidget()
+    ClipipiWidget()
 } timeline: {
     ClipEntry(date: .now, items: [
         WidgetClipItem(content: "Hello World", type: "text"),

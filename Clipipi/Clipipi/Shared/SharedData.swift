@@ -2,7 +2,7 @@ import Foundation
 
 /// 用於 App 和 Widget 之間共享資料
 struct SharedData {
-    static let appGroupIdentifier = "group.com.clipstash.app"
+    static let appGroupIdentifier = "group.com.clipipi.app"
     static let itemsKey = "shared_clip_items"
 
     static var sharedDefaults: UserDefaults? {

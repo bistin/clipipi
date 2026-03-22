@@ -1,4 +1,4 @@
-# ClipStash — macOS 剪貼簿歷史管理工具
+# Clipipi — macOS 剪貼簿歷史管理工具
 
 ## 概述
 
@@ -196,7 +196,7 @@ ForEach(task.items) { item in
 ---
 
 ### 7. 單元測試補充 ✅
-**檔案**: `ClipStashTests/`
+**檔案**: `ClipipiTests/`
 
 **目標**:
 - 測試搜尋邏輯（正則、篩選）
@@ -220,8 +220,8 @@ ForEach(task.items) { item in
 ## 現有架構
 
 ```
-ClipStash/
-├── ClipStashApp.swift
+Clipipi/
+├── ClipipiApp.swift
 ├── Views/
 │   ├── MenuBarView.swift      # 主畫面
 │   ├── ClipItemRow.swift      # 列表項目
@@ -236,7 +236,7 @@ ClipStash/
 │   ├── HotkeyManager.swift    # 快捷鍵
 │   ├── PanelManager.swift     # 懸浮視窗
 │   └── WindowManager.swift    # 視窗管理
-└── ClipStashTests/            # 測試
+└── ClipipiTests/            # 測試
 ```
 
 ---
