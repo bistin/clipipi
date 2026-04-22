@@ -1,13 +1,17 @@
-name: CI
+name: Build & Release
 
 on:
   push:
     branches: [master, main]
+    tags: ['v*']
   pull_request:
     branches: [master, main]
 
+permissions:
+  contents: write
+
 jobs:
-  build-and-test:
+  build:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
@@ -15,16 +19,36 @@ jobs:
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode_16.app
 
-      - name: Build
-        run: |
-          cd Clipipi
-          xcodebuild -scheme Clipipi -configuration Debug build \
-            -destination 'platform=macOS' \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Test
+      - name: Run tests
         run: |
           cd Clipipi
           xcodebuild test -scheme Clipipi \
             -destination 'platform=macOS' \
             CODE_SIGNING_ALLOWED=NO
+
+      - name: Build archive
+        run: |
+          cd Clipipi
+          xcodebuild -scheme Clipipi -configuration Release archive \
+            -archivePath ./build/Clipipi.xcarchive \
+            CODE_SIGN_IDENTITY=- \
+            CODE_SIGN_STYLE=Manual
+
+      - name: Zip app
+        run: |
+          cd Clipipi/build/Clipipi.xcarchive/Products/Applications
+          codesign --force --deep --sign - Clipipi.app
+          zip -r "$GITHUB_WORKSPACE/Clipipi.zip" Clipipi.app
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Clipipi
+          path: Clipipi.zip
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Clipipi.zip
+          generate_release_notes: true
