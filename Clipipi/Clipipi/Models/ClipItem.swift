@@ -11,6 +11,8 @@ struct ClipItem: Identifiable, Codable, Equatable {
     var tags: [String]    // 標籤
     var taskId: UUID?     // 關聯的任務 ID（可選）
     var ocrText: String?  // OCR 辨識結果
+    var sourceBundleId: String?  // 複製當下的前景 App bundle id
+    var sourceAppName: String?   // 複製當下的前景 App 名稱
 
     /// 偵測內容來源（Slack, Jira, Quip, etc.）
     var detectedSource: ContentSource {
@@ -43,7 +45,7 @@ struct ClipItem: Identifiable, Codable, Equatable {
     }
 
     // 文字初始化
-    init(id: UUID = UUID(), content: String, timestamp: Date = Date(), isPinned: Bool = false, tags: [String] = [], taskId: UUID? = nil) {
+    init(id: UUID = UUID(), content: String, timestamp: Date = Date(), isPinned: Bool = false, tags: [String] = [], taskId: UUID? = nil, sourceBundleId: String? = nil, sourceAppName: String? = nil) {
         self.id = id
         self.content = content
         self.timestamp = timestamp
@@ -53,10 +55,12 @@ struct ClipItem: Identifiable, Codable, Equatable {
         self.tags = tags
         self.taskId = taskId
         self.ocrText = nil
+        self.sourceBundleId = sourceBundleId
+        self.sourceAppName = sourceAppName
     }
 
     // 圖片初始化
-    init(id: UUID = UUID(), imageData: Data, timestamp: Date = Date(), isPinned: Bool = false, tags: [String] = [], taskId: UUID? = nil, ocrText: String? = nil) {
+    init(id: UUID = UUID(), imageData: Data, timestamp: Date = Date(), isPinned: Bool = false, tags: [String] = [], taskId: UUID? = nil, ocrText: String? = nil, sourceBundleId: String? = nil, sourceAppName: String? = nil) {
         self.id = id
         self.content = "[圖片]"
         self.timestamp = timestamp
@@ -66,6 +70,8 @@ struct ClipItem: Identifiable, Codable, Equatable {
         self.tags = tags
         self.taskId = taskId
         self.ocrText = ocrText
+        self.sourceBundleId = sourceBundleId
+        self.sourceAppName = sourceAppName
     }
 
     var image: NSImage? {

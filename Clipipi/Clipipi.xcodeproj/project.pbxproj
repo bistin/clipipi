@@ -21,6 +21,7 @@
 		A10012 /* WindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20014 /* WindowManager.swift */; };
 		A10013 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20015 /* SettingsView.swift */; };
 		A10014 /* OCRManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20016 /* OCRManager.swift */; };
+		A10015 /* AppIconLookup.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20017 /* AppIconLookup.swift */; };
 		T10001 /* ClipItemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20001 /* ClipItemTests.swift */; };
 		T10002 /* ContentSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20002 /* ContentSourceTests.swift */; };
 		T10003 /* ClipTaskTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20003 /* ClipTaskTests.swift */; };
@@ -55,6 +56,7 @@
 		A20014 /* WindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowManager.swift; sourceTree = "<group>"; };
 		A20015 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A20016 /* OCRManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRManager.swift; sourceTree = "<group>"; };
+		A20017 /* AppIconLookup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIconLookup.swift; sourceTree = "<group>"; };
 		A30001 /* Clipipi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Clipipi.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		T20001 /* ClipItemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipItemTests.swift; sourceTree = "<group>"; };
 		T20002 /* ContentSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentSourceTests.swift; sourceTree = "<group>"; };
@@ -151,6 +153,7 @@
 				A20007 /* PanelManager.swift */,
 				A20014 /* WindowManager.swift */,
 				A20016 /* OCRManager.swift */,
+				A20017 /* AppIconLookup.swift */,
 			);
 			path = Managers;
 			sourceTree = "<group>";
@@ -271,6 +274,7 @@
 				A10012 /* WindowManager.swift in Sources */,
 				A10013 /* SettingsView.swift in Sources */,
 				A10014 /* OCRManager.swift in Sources */,
+				A10015 /* AppIconLookup.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

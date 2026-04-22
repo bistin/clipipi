@@ -93,6 +93,24 @@ struct ClipItemRow: View {
                         .cornerRadius(3)
                     }
 
+                    // 來源 App
+                    if let appName = item.sourceAppName {
+                        HStack(spacing: 3) {
+                            if let bid = item.sourceBundleId,
+                               let icon = AppIconLookup.icon(forBundleId: bid) {
+                                Image(nsImage: icon)
+                                    .resizable()
+                                    .frame(width: 11, height: 11)
+                            }
+                            Text(appName)
+                                .font(.system(size: 9))
+                        }
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 1)
+                        .background(Color.secondary.opacity(0.15))
+                        .cornerRadius(3)
+                    }
+
                     // 顯示標籤
                     if !item.tags.isEmpty {
                         ForEach(item.tags.prefix(2), id: \.self) { tag in
@@ -196,6 +214,9 @@ struct ClipItemRow: View {
                 }
                 Button(action: { onPasteWithFormat?(.markdown) ?? onPaste() }) {
                     Label("貼上 Markdown", systemImage: "text.document")
+                }
+                Button(action: { onPasteWithFormat?(.trimmed) ?? onPaste() }) {
+                    Label("貼上（去頭尾空白）", systemImage: "scissors")
                 }
                 Divider()
             }

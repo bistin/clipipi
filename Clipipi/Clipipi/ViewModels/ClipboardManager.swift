@@ -12,11 +12,22 @@ final class ClipboardManager: ObservableObject, Sendable {
     @Published var filterType: ClipItem.ClipType? = nil
     @Published var filterSource: ContentSource? = nil
     @Published var filterTag: String? = nil
+    @Published var excludedBundleIds: Set<String> = [] {
+        didSet { saveExcludedBundleIds() }
+    }
 
     private var lastChangeCount: Int = 0
     private var timer: Timer?
     private let maxItems = 100
     private let userDefaultsKey = "clip_stash_items"
+    private let excludedBundleIdsKey = "clip_stash_excluded_bundle_ids"
+
+    /// 有些 App（如 1Password）會在剪貼簿加上這個 type 標記機密內容，要跳過記錄
+    private static let concealedPasteboardTypes: [NSPasteboard.PasteboardType] = [
+        NSPasteboard.PasteboardType("org.nspasteboard.ConcealedType"),
+        NSPasteboard.PasteboardType("org.nspasteboard.TransientType"),
+        NSPasteboard.PasteboardType("com.agilebits.onepassword"),
+    ]
 
     /// 是否有任何篩選條件啟用
     var hasActiveFilters: Bool {
@@ -92,6 +103,7 @@ final class ClipboardManager: ObservableObject, Sendable {
 
     private init() {
         loadItems()
+        loadExcludedBundleIds()
         lastChangeCount = NSPasteboard.general.changeCount
         startMonitoring()
     }
@@ -124,9 +136,21 @@ final class ClipboardManager: ObservableObject, Sendable {
         guard currentChangeCount != lastChangeCount else { return }
         lastChangeCount = currentChangeCount
 
+        // 機密內容標記（1Password 之類會設這個 type）
+        let availableTypes = Set(pasteboard.types ?? [])
+        for concealed in ClipboardManager.concealedPasteboardTypes {
+            if availableTypes.contains(concealed) { return }
+        }
+
+        // 來源 App（若在排除清單中就跳過）
+        let frontApp = NSWorkspace.shared.frontmostApplication
+        let sourceBundleId = frontApp?.bundleIdentifier
+        let sourceAppName = frontApp?.localizedName
+        if let bid = sourceBundleId, excludedBundleIds.contains(bid) { return }
+
         // 先檢查圖片
         if let imageData = getImageData(from: pasteboard) {
-            addImageItem(imageData: imageData)
+            addImageItem(imageData: imageData, sourceBundleId: sourceBundleId, sourceAppName: sourceAppName)
             return
         }
 
@@ -136,7 +160,7 @@ final class ClipboardManager: ObservableObject, Sendable {
             return
         }
 
-        addItem(content: content)
+        addItem(content: content, sourceBundleId: sourceBundleId, sourceAppName: sourceAppName)
     }
 
     private func getImageData(from pasteboard: NSPasteboard) -> Data? {
@@ -176,19 +200,19 @@ final class ClipboardManager: ObservableObject, Sendable {
 
     // MARK: - Item Management
 
-    func addItem(content: String) {
+    func addItem(content: String, sourceBundleId: String? = nil, sourceAppName: String? = nil) {
         // 移除已存在的相同內容（去重 + 提升）
         items.removeAll { $0.content == content && !$0.isPinned && $0.type != .image }
 
-        let newItem = ClipItem(content: content)
+        let newItem = ClipItem(content: content, sourceBundleId: sourceBundleId, sourceAppName: sourceAppName)
         items.insert(newItem, at: 0)
 
         enforceMaxItems()
         saveItems()
     }
 
-    func addImageItem(imageData: Data) {
-        let newItem = ClipItem(imageData: imageData)
+    func addImageItem(imageData: Data, sourceBundleId: String? = nil, sourceAppName: String? = nil) {
+        let newItem = ClipItem(imageData: imageData, sourceBundleId: sourceBundleId, sourceAppName: sourceAppName)
         items.insert(newItem, at: 0)
 
         enforceMaxItems()
@@ -248,12 +272,14 @@ final class ClipboardManager: ObservableObject, Sendable {
         case original = "原始格式"
         case plainText = "純文字"
         case markdown = "Markdown"
+        case trimmed = "去頭尾空白"
 
         var iconName: String {
             switch self {
             case .original: return "doc.richtext"
             case .plainText: return "doc.text"
             case .markdown: return "text.document"
+            case .trimmed: return "scissors"
             }
         }
     }
@@ -273,6 +299,8 @@ final class ClipboardManager: ObservableObject, Sendable {
                 content = stripFormatting(item.content)
             case .markdown:
                 content = convertToMarkdown(item)
+            case .trimmed:
+                content = item.content.trimmingCharacters(in: .whitespacesAndNewlines)
             }
             pasteboard.setString(content, forType: .string)
         }
@@ -410,6 +438,26 @@ final class ClipboardManager: ObservableObject, Sendable {
         if let data = UserDefaults.standard.data(forKey: userDefaultsKey),
            let decoded = try? JSONDecoder().decode([ClipItem].self, from: data) {
             items = decoded
+        }
+    }
+
+    // MARK: - Exclusion List
+
+    func addExcludedBundleId(_ bundleId: String) {
+        excludedBundleIds.insert(bundleId)
+    }
+
+    func removeExcludedBundleId(_ bundleId: String) {
+        excludedBundleIds.remove(bundleId)
+    }
+
+    private func saveExcludedBundleIds() {
+        UserDefaults.standard.set(Array(excludedBundleIds), forKey: excludedBundleIdsKey)
+    }
+
+    private func loadExcludedBundleIds() {
+        if let saved = UserDefaults.standard.array(forKey: excludedBundleIdsKey) as? [String] {
+            excludedBundleIds = Set(saved)
         }
     }
 }
