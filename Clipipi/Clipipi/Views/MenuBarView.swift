@@ -43,42 +43,38 @@ struct MenuBarView: View {
         }
         .frame(width: 320, height: 480)
         .background(Color(nsColor: .windowBackgroundColor).opacity(0.001))
-        .onKeyPress(.downArrow) {
-            clipboardManager.selectNext()
-            return .handled
-        }
-        .onKeyPress(.upArrow) {
-            clipboardManager.selectPrevious()
-            return .handled
-        }
-        .onKeyPress(.return) {
-            clipboardManager.pasteSelected()
-            return .handled
-        }
-        .onKeyPress(.escape) {
-            if showHelp {
-                showHelp = false
-                return .handled
+        .onKeyDownCompat { press in
+            if press.matches(.downArrow) {
+                clipboardManager.selectNext()
+                return true
             }
-            PanelManager.shared.hidePanel()
-            return .handled
-        }
-        .onKeyPress(keys: [.init("f")]) { press in
-            if press.modifiers.contains(.command) {
-                isSearchFocused = true
-                return .handled
+            if press.matches(.upArrow) {
+                clipboardManager.selectPrevious()
+                return true
             }
-            return .ignored
-        }
-        // ⌘1~9 快速貼上
-        .onKeyPress(keys: [.init("1"), .init("2"), .init("3"), .init("4"), .init("5"), .init("6"), .init("7"), .init("8"), .init("9")]) { press in
+            if press.matches(.return) {
+                clipboardManager.pasteSelected()
+                return true
+            }
+            if press.matches(.escape) {
+                if showHelp {
+                    showHelp = false
+                } else {
+                    PanelManager.shared.hidePanel()
+                }
+                return true
+            }
             if press.modifiers.contains(.command) {
-                if let num = Int(press.characters), num >= 1, num <= 9 {
+                if press.character == "f" {
+                    isSearchFocused = true
+                    return true
+                }
+                if let num = press.character.wholeNumberValue, num >= 1, num <= 9 {
                     clipboardManager.pasteItemAtIndex(num - 1)
-                    return .handled
+                    return true
                 }
             }
-            return .ignored
+            return false
         }
     }
 
@@ -385,7 +381,7 @@ struct MenuBarView: View {
                 }
                 .padding(.vertical, 4)
             }
-            .onChange(of: clipboardManager.selectedItemId) { _, newId in
+            .onChange(of: clipboardManager.selectedItemId) { newId in
                 if let id = newId {
                     withAnimation {
                         proxy.scrollTo(id, anchor: .center)

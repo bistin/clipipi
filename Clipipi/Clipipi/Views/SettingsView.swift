@@ -65,16 +65,16 @@ struct SettingsView: View {
                     }
                 }
                 .buttonStyle(.bordered)
-                .onKeyPress(phases: .down) { press in
-                    guard isRecording else { return .ignored }
+                .onKeyDownCompat { press in
+                    guard isRecording else { return false }
 
                     let modifiers = press.modifiers
                     guard modifiers.contains(.command) || modifiers.contains(.control) || modifiers.contains(.option) else {
-                        return .handled
+                        return true
                     }
 
-                    let keyCode = keyCodeFromKeyEquivalent(press.key)
-                    guard keyCode != 0xFFFF else { return .handled }
+                    let keyCode = keyCodeFromCharacter(press.character)
+                    guard keyCode != 0xFFFF else { return true }
 
                     var cgFlags = CGEventFlags()
                     if modifiers.contains(.command) { cgFlags.insert(.maskCommand) }
@@ -85,7 +85,7 @@ struct SettingsView: View {
                     let newSettings = HotkeySettings(keyCode: keyCode, modifierFlags: cgFlags.rawValue)
                     hotkeyManager.updateSettings(newSettings)
                     isRecording = false
-                    return .handled
+                    return true
                 }
             }
 
@@ -195,9 +195,8 @@ struct SettingsView: View {
         clipboardManager.addExcludedBundleId(bid)
     }
 
-    /// 從 KeyEquivalent 轉換為 CGEvent keyCode
-    private func keyCodeFromKeyEquivalent(_ key: KeyEquivalent) -> UInt16 {
-        let char = key.character
+    /// 從 character 轉換為 CGEvent keyCode
+    private func keyCodeFromCharacter(_ char: Character) -> UInt16 {
         let keyMap: [Character: UInt16] = [
             "a": 0x00, "s": 0x01, "d": 0x02, "f": 0x03, "h": 0x04,
             "g": 0x05, "z": 0x06, "x": 0x07, "c": 0x08, "v": 0x09,
