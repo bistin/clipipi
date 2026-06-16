@@ -23,7 +23,8 @@ Clipipi/
 │   └── ClipItem.swift           # 資料模型（id, content, timestamp, type, isPinned）
 ├── Managers/
 │   ├── HotkeyManager.swift      # 全域快捷鍵 ⌘⇧V（CGEvent tap）
-│   └── PanelManager.swift       # NSPanel 懸浮視窗管理
+│   ├── PanelManager.swift       # NSPanel 懸浮視窗管理
+│   └── LaunchAtLoginManager.swift # 開機自動啟動（SMAppService）
 ├── Assets.xcassets/
 ├── Info.plist                   # LSUIElement = YES
 └── Clipipi.entitlements       # App Sandbox 關閉
@@ -39,6 +40,7 @@ Clipipi/
 | 懸浮視窗 | 自訂 `KeyablePanel: NSPanel` + `NSVisualEffectView` 毛玻璃 |
 | 持久化 | `UserDefaults` JSON 編碼，key: `clip_stash_items` |
 | 內容類型偵測 | URL（http/https）、程式碼（關鍵字偵測）、文字 |
+| 開機自動啟動 | `SMAppService.mainApp`（macOS 13+，於設定畫面開關）|
 
 ## 重要注意事項
 

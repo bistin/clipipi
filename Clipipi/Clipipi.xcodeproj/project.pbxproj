@@ -23,6 +23,8 @@
 		A10014 /* OCRManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20016 /* OCRManager.swift */; };
 		A10015 /* AppIconLookup.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20017 /* AppIconLookup.swift */; };
 		A10016 /* KeyEventCompat.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20018 /* KeyEventCompat.swift */; };
+		A10017 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20019 /* UpdateChecker.swift */; };
+		A10018 /* LaunchAtLoginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2001A /* LaunchAtLoginManager.swift */; };
 		T10001 /* ClipItemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20001 /* ClipItemTests.swift */; };
 		T10002 /* ContentSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20002 /* ContentSourceTests.swift */; };
 		T10003 /* ClipTaskTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20003 /* ClipTaskTests.swift */; };
@@ -59,6 +61,8 @@
 		A20016 /* OCRManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRManager.swift; sourceTree = "<group>"; };
 		A20017 /* AppIconLookup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIconLookup.swift; sourceTree = "<group>"; };
 		A20018 /* KeyEventCompat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyEventCompat.swift; sourceTree = "<group>"; };
+		A20019 /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
+		A2001A /* LaunchAtLoginManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginManager.swift; sourceTree = "<group>"; };
 		A30001 /* Clipipi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Clipipi.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		T20001 /* ClipItemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipItemTests.swift; sourceTree = "<group>"; };
 		T20002 /* ContentSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentSourceTests.swift; sourceTree = "<group>"; };
@@ -157,6 +161,8 @@
 				A20016 /* OCRManager.swift */,
 				A20017 /* AppIconLookup.swift */,
 				A20018 /* KeyEventCompat.swift */,
+				A20019 /* UpdateChecker.swift */,
+				A2001A /* LaunchAtLoginManager.swift */,
 			);
 			path = Managers;
 			sourceTree = "<group>";
@@ -279,6 +285,8 @@
 				A10014 /* OCRManager.swift in Sources */,
 				A10015 /* AppIconLookup.swift in Sources */,
 				A10016 /* KeyEventCompat.swift in Sources */,
+				A10017 /* UpdateChecker.swift in Sources */,
+				A10018 /* LaunchAtLoginManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

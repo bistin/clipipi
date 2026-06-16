@@ -5,6 +5,8 @@ import UniformTypeIdentifiers
 struct SettingsView: View {
     @ObservedObject private var hotkeyManager = HotkeyManager.shared
     @ObservedObject private var clipboardManager = ClipboardManager.shared
+    @ObservedObject private var updateChecker = UpdateChecker.shared
+    @ObservedObject private var launchAtLogin = LaunchAtLoginManager.shared
     @State private var isRecording = false
     @State private var recordedKeyCode: UInt16?
     @State private var recordedModifiers: NSEvent.ModifierFlags = []
@@ -20,7 +22,9 @@ struct SettingsView: View {
                 Divider()
 
                 hotkeySection
+                generalSection
                 exclusionSection
+                updateSection
 
                 HStack {
                     Spacer()
@@ -32,7 +36,7 @@ struct SettingsView: View {
             }
             .padding(24)
         }
-        .frame(width: 420, height: 520)
+        .frame(width: 420, height: 600)
     }
 
     // MARK: - Hotkey
@@ -101,6 +105,33 @@ struct SettingsView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(nsColor: .controlBackgroundColor))
         .cornerRadius(8)
+    }
+
+    // MARK: - General
+
+    private var generalSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("一般")
+                .font(.headline)
+
+            Toggle(isOn: Binding(
+                get: { launchAtLogin.isEnabled },
+                set: { launchAtLogin.setEnabled($0) }
+            )) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("開機時自動啟動")
+                    Text("登入 macOS 後自動在背景啟動 Clipipi")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .toggleStyle(.switch)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(nsColor: .controlBackgroundColor))
+        .cornerRadius(8)
+        .onAppear { launchAtLogin.refresh() }
     }
 
     // MARK: - Exclusion List
@@ -175,6 +206,68 @@ struct SettingsView: View {
         .padding(.vertical, 4)
         .background(Color.primary.opacity(0.04))
         .cornerRadius(6)
+    }
+
+    // MARK: - Update
+
+    private var updateSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("關於與更新")
+                .font(.headline)
+
+            HStack {
+                Text("目前版本：")
+                    .foregroundStyle(.secondary)
+                Text("v\(updateChecker.currentVersion)")
+                    .font(.system(.body, design: .monospaced))
+                Spacer()
+                Button(action: { updateChecker.check() }) {
+                    if case .checking = updateChecker.state {
+                        HStack(spacing: 6) {
+                            ProgressView().controlSize(.small)
+                            Text("檢查中…")
+                        }
+                    } else {
+                        Text("檢查更新")
+                    }
+                }
+                .buttonStyle(.bordered)
+                .disabled({ if case .checking = updateChecker.state { return true } else { return false } }())
+            }
+
+            updateStatusView
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(nsColor: .controlBackgroundColor))
+        .cornerRadius(8)
+    }
+
+    @ViewBuilder
+    private var updateStatusView: some View {
+        switch updateChecker.state {
+        case .idle, .checking:
+            EmptyView()
+        case .upToDate:
+            Label("已是最新版本", systemImage: "checkmark.circle.fill")
+                .font(.caption)
+                .foregroundStyle(.green)
+        case .updateAvailable(let latest, _, _):
+            HStack {
+                Label("有新版本 v\(latest)", systemImage: "arrow.down.circle.fill")
+                    .font(.caption)
+                    .foregroundStyle(Color.accentColor)
+                Spacer()
+                Button("前往下載") { updateChecker.openReleasePage() }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+            }
+        case .failed(let message):
+            Label("檢查失敗：\(message)", systemImage: "exclamationmark.triangle.fill")
+                .font(.caption)
+                .foregroundStyle(.orange)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
 
     private func pickAppToExclude() {
