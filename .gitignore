@@ -12,3 +12,6 @@ DerivedData/
 
 # Archives
 *.xcarchive
+
+# Local signing (per-machine)
+Clipipi/Local.xcconfig

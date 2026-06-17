@@ -1,0 +1,3 @@
+// 複製為 Local.xcconfig 並填入你的 Team ID（Xcode → Settings → Accounts）
+// 設定後用 Apple Development 簽章，輔助使用權限就不會每次 build 都重設。
+DEVELOPMENT_TEAM = YOUR_TEAM_ID_HERE

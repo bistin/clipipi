@@ -43,6 +43,7 @@ final class HotkeyManager: ObservableObject, Sendable {
     static let shared = HotkeyManager()
 
     @Published private(set) var settings: HotkeySettings
+    @Published private(set) var hasAccessibilityPermission: Bool = false
 
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
@@ -83,7 +84,8 @@ final class HotkeyManager: ObservableObject, Sendable {
     }
 
     func start() {
-        let trusted = checkAccessibilityPermission(showPrompt: true)
+        let trusted = checkAccessibilityPermission(showPrompt: false)
+        hasAccessibilityPermission = trusted
         lastPermissionState = trusted
 
         if trusted {
@@ -91,6 +93,32 @@ final class HotkeyManager: ObservableObject, Sendable {
         }
 
         startPermissionCheck()
+    }
+
+    /// 主動請求輔助使用權限（由設定頁觸發，避免每次啟動都跳系統對話框）
+    func requestAccessibilityPermission() {
+        let trusted = checkAccessibilityPermission(showPrompt: true)
+        hasAccessibilityPermission = trusted
+
+        if trusted && !lastPermissionState {
+            setupEventTap()
+        } else if !trusted && lastPermissionState {
+            stopEventTap()
+        }
+
+        lastPermissionState = trusted
+    }
+
+    func openAccessibilitySettings() {
+        guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") else {
+            return
+        }
+        NSWorkspace.shared.open(url)
+    }
+
+    /// 靜默刷新權限狀態（不跳出系統對話框）
+    func refreshAccessibilityStatus() {
+        recheckPermission()
     }
 
     nonisolated private func checkAccessibilityPermission(showPrompt: Bool) -> Bool {
@@ -108,6 +136,7 @@ final class HotkeyManager: ObservableObject, Sendable {
 
     private func recheckPermission() {
         let currentState = checkAccessibilityPermission(showPrompt: false)
+        hasAccessibilityPermission = currentState
 
         if currentState && !lastPermissionState {
             setupEventTap()

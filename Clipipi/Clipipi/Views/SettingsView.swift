@@ -22,6 +22,7 @@ struct SettingsView: View {
                 Divider()
 
                 hotkeySection
+                accessibilitySection
                 generalSection
                 exclusionSection
                 updateSection
@@ -105,6 +106,50 @@ struct SettingsView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(nsColor: .controlBackgroundColor))
         .cornerRadius(8)
+    }
+
+    // MARK: - Accessibility
+
+    private var accessibilitySection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("輔助使用權限")
+                .font(.headline)
+
+            HStack {
+                if hotkeyManager.hasAccessibilityPermission {
+                    Label("已授權", systemImage: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                } else {
+                    Label("未授權", systemImage: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.orange)
+                }
+                Spacer()
+            }
+
+            Text("全域快捷鍵與自動貼上需要此權限。若每次 build 後都要重設，請用 Apple Development 簽章（見 Local.xcconfig.example）。")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            HStack(spacing: 8) {
+                Button("請求權限") {
+                    hotkeyManager.requestAccessibilityPermission()
+                }
+                .buttonStyle(.bordered)
+
+                Button("開啟系統設定") {
+                    hotkeyManager.openAccessibilitySettings()
+                }
+                .buttonStyle(.bordered)
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(nsColor: .controlBackgroundColor))
+        .cornerRadius(8)
+        .onAppear {
+            hotkeyManager.refreshAccessibilityStatus()
+        }
     }
 
     // MARK: - General

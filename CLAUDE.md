@@ -50,7 +50,12 @@ Clipipi/
 
 ### 權限
 - **輔助使用權限**：全域快捷鍵和模擬按鍵必須
-- 從 Xcode 重新 Build 後需要重新授權（簽章改變）
+- **adhoc 簽章**（未設定 Team ID）時，每次 build 二進位變更，macOS 會視為新 App，需重新授權
+- **解法**：用 Apple Development 簽章（一次設定，之後 build 不用重設）
+  1. Xcode → Settings → Accounts → 登入 Apple ID
+  2. `cp Local.xcconfig.example Local.xcconfig`，填入 `DEVELOPMENT_TEAM`
+  3. `./install.sh` 會自動用該 Team 簽章
+- 啟動時不再自動跳權限對話框；需時到「設定 → 輔助使用權限」手動請求
 
 ### NSPanel
 - 需要 override `canBecomeKey` 回傳 `true` 才能接收鍵盤焦點
