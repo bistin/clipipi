@@ -56,12 +56,24 @@ Clipipi/
 - 需要 override `canBecomeKey` 回傳 `true` 才能接收鍵盤焦點
 - 使用 `orderFrontRegardless()` + `makeKey()` 顯示
 
-## Build 指令
+## Build 與安裝
+
+**平常開發用這個就好**（build 完直接裝到 `/Applications`，不留副本在專案裡）：
+
+```bash
+cd Clipipi
+./install.sh
+```
+
+安裝後永遠開 `/Applications/Clipipi.app`，不要開 DerivedData 或 `build/` 裡的版本。
+
+若要打包 archive（例如發佈用）：
 
 ```bash
 cd Clipipi
 xcodebuild -scheme Clipipi -configuration Release archive -archivePath ./build/Clipipi.xcarchive
 cp -R ./build/Clipipi.xcarchive/Products/Applications/Clipipi.app /Applications/
+rm -rf ./build
 ```
 
 ## 快捷鍵
