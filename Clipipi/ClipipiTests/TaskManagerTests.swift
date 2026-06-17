@@ -46,15 +46,25 @@ struct TaskManagerTests {
         #expect(manager.tasks.count == 4)
     }
 
-    @Test("選擇收集會啟用收集篩選")
-    func selectCollectionEnablesFilter() {
+    @Test("設為當前收集不改變列表檢視")
+    func setActiveCollectionKeepsAllHistoryView() {
         let manager = makeManager()
         let task = manager.createTask(name: "Bug Fix")!
-        manager.showAllHistory()
-        manager.selectCollection(task)
 
         #expect(manager.activeTaskId == task.id)
+        #expect(manager.isCollectionFilterActive == false)
+    }
+
+    @Test("切換只看收集")
+    func toggleCollectionFilter() {
+        let manager = makeManager()
+        _ = manager.createTask(name: "Bug Fix")
+
+        manager.toggleCollectionFilter()
         #expect(manager.isCollectionFilterActive == true)
+
+        manager.toggleCollectionFilter()
+        #expect(manager.isCollectionFilterActive == false)
     }
 
     // MARK: - Task Deletion

@@ -59,18 +59,22 @@ final class TaskManager: ObservableObject, Sendable {
         let task = ClipTask(name: trimmed, slackChannel: slackChannel)
         tasks.insert(task, at: 0)
         activeTaskId = task.id
-        isCollectionFilterActive = true
         saveTasks()
         return task
     }
 
-    /// 選擇收集並切換為「只看此收集」
-    func selectCollection(_ task: ClipTask) {
+    /// 設為當前收集（自動收集的目標，不改變列表檢視）
+    func setActiveCollection(_ task: ClipTask) {
         activeTaskId = task.id
-        isCollectionFilterActive = true
     }
 
-    /// 回到全部歷史
+    /// 切換「只看此收集」
+    func toggleCollectionFilter() {
+        guard activeTaskId != nil else { return }
+        isCollectionFilterActive.toggle()
+    }
+
+    /// 回到全部歷史檢視
     func showAllHistory() {
         isCollectionFilterActive = false
     }
@@ -282,14 +286,10 @@ final class TaskManager: ObservableObject, Sendable {
 
     private struct TaskPreferences: Codable {
         var isAutoCollectEnabled: Bool
-        var isCollectionFilterActive: Bool
     }
 
     private func savePreferences() {
-        let prefs = TaskPreferences(
-            isAutoCollectEnabled: isAutoCollectEnabled,
-            isCollectionFilterActive: isCollectionFilterActive
-        )
+        let prefs = TaskPreferences(isAutoCollectEnabled: isAutoCollectEnabled)
         if let encoded = try? JSONEncoder().encode(prefs) {
             UserDefaults.standard.set(encoded, forKey: preferencesKey)
         }
@@ -301,6 +301,7 @@ final class TaskManager: ObservableObject, Sendable {
             return
         }
         isAutoCollectEnabled = prefs.isAutoCollectEnabled
-        isCollectionFilterActive = prefs.isCollectionFilterActive
+        // 列表永遠從全部歷史開始，避免一開啟就像進入任務清單
+        isCollectionFilterActive = false
     }
 }

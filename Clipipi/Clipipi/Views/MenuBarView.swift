@@ -137,11 +137,21 @@ struct MenuBarView: View {
                     Label("全部歷史", systemImage: "clock")
                 }
 
+                if let task = taskManager.activeTask {
+                    Button(action: {
+                        taskManager.isCollectionFilterActive = true
+                    }) {
+                        Label("只看「\(task.name)」", systemImage: "line.3.horizontal.decrease.circle")
+                    }
+                    .disabled(taskManager.isCollectionFilterActive)
+                }
+
                 if !taskManager.activeTasks.isEmpty {
                     Divider()
                     ForEach(taskManager.activeTasks) { task in
                         Button(action: {
-                            taskManager.selectCollection(task)
+                            taskManager.setActiveCollection(task)
+                            taskManager.showAllHistory()
                         }) {
                             HStack {
                                 Text(task.name)
@@ -201,14 +211,24 @@ struct MenuBarView: View {
 
             Spacer()
 
-            Toggle(isOn: $taskManager.isAutoCollectEnabled) {
-                Text("自動收集")
-                    .font(.caption2)
+            VStack(alignment: .trailing, spacing: 2) {
+                Toggle(isOn: $taskManager.isAutoCollectEnabled) {
+                    Text("自動收集")
+                        .font(.caption2)
+                }
+                .toggleStyle(.switch)
+                .controlSize(.mini)
+                .disabled(taskManager.activeTaskId == nil)
+                .help(taskManager.activeTaskId == nil ? "請先選擇或建立收集" : "複製時自動加入當前收集")
+
+                if let task = taskManager.activeTask, !taskManager.isCollectionFilterActive {
+                    Text("→ \(task.name)")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                        .frame(maxWidth: 90, alignment: .trailing)
+                }
             }
-            .toggleStyle(.switch)
-            .controlSize(.mini)
-            .disabled(taskManager.activeTaskId == nil)
-            .help(taskManager.activeTaskId == nil ? "請先選擇或建立收集" : "複製時自動加入當前收集")
         }
         .alert("新收集", isPresented: $showCreateCollection) {
             TextField("名稱", text: $newCollectionName)
@@ -228,9 +248,6 @@ struct MenuBarView: View {
         if taskManager.isCollectionFilterActive, let task = taskManager.activeTask {
             return task.name
         }
-        if let task = taskManager.activeTask {
-            return "全部 · \(task.name)"
-        }
         return "全部歷史"
     }
 
@@ -243,11 +260,7 @@ struct MenuBarView: View {
 
     private func toggleCollectionFilter() {
         guard taskManager.activeTask != nil else { return }
-        if taskManager.isCollectionFilterActive {
-            taskManager.showAllHistory()
-        } else {
-            taskManager.isCollectionFilterActive = true
-        }
+        taskManager.toggleCollectionFilter()
     }
 
     // MARK: - Help View
@@ -267,8 +280,9 @@ struct MenuBarView: View {
 
                 helpSection(title: "收集模式", items: [
                     ("自動收集", "開啟後複製的內容自動加入當前收集"),
-                    ("收集下拉", "切換全部歷史或只看某個收集"),
-                    ("匯出", "收集檢視中可一鍵複製 Markdown")
+                    ("收集下拉", "選擇收集目標；「只看」才會篩選列表"),
+                    ("⌘T", "在全部歷史與只看收集之間切換"),
+                    ("匯出", "只看收集時可一鍵複製 Markdown")
                 ])
 
                 helpSection(title: "操作", items: [
@@ -479,22 +493,7 @@ struct MenuBarView: View {
                         }
                     }
 
-                    // 收集中區塊（全部歷史模式）
-                    if !clipboardManager.activeCollectionUnpinnedItems.isEmpty {
-                        collectionSectionHeader
-
-                        ForEach(clipboardManager.activeCollectionUnpinnedItems) { item in
-                            clipItemRow(for: item)
-                                .id(item.id)
-                        }
-
-                        if !clipboardManager.otherUnpinnedItems.isEmpty {
-                            Divider()
-                                .padding(.vertical, 4)
-                        }
-                    }
-
-                    // 其他未釘選項目
+                    // 未釘選項目
                     ForEach(displayedOtherUnpinnedItems) { item in
                         clipItemRow(for: item)
                             .id(item.id)
@@ -513,33 +512,11 @@ struct MenuBarView: View {
     }
 
     private var hasUnpinnedListContent: Bool {
-        !clipboardManager.activeCollectionUnpinnedItems.isEmpty
-            || !displayedOtherUnpinnedItems.isEmpty
+        !displayedOtherUnpinnedItems.isEmpty
     }
 
     private var displayedOtherUnpinnedItems: [ClipItem] {
-        if taskManager.isCollectionFilterActive {
-            return clipboardManager.unpinnedItems
-        }
-        return clipboardManager.otherUnpinnedItems
-    }
-
-    private var collectionSectionHeader: some View {
-        HStack(spacing: 4) {
-            Image(systemName: "tray.full.fill")
-                .font(.system(size: 10))
-            Text("收集中")
-                .font(.caption2.bold())
-            if let task = taskManager.activeTask {
-                Text("· \(task.name)")
-                    .font(.caption2)
-                    .lineLimit(1)
-            }
-            Spacer()
-        }
-        .foregroundStyle(Color.accentColor)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+        clipboardManager.unpinnedItems
     }
 
     private func clipItemRow(for item: ClipItem) -> some View {
