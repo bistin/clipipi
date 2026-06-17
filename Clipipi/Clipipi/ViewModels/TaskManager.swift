@@ -7,11 +7,18 @@ final class TaskManager: ObservableObject, Sendable {
     static let shared = TaskManager()
 
     @Published private(set) var tasks: [ClipTask] = []
-    @Published var activeTaskId: UUID?           // 當前作用中的任務
+    @Published var activeTaskId: UUID?           // 當前作用中的收集
     @Published var isTaskModeEnabled: Bool = false
+    @Published var isAutoCollectEnabled: Bool = false {
+        didSet { savePreferences() }
+    }
+    /// 開啟時列表只顯示當前收集的項目
+    @Published var isCollectionFilterActive: Bool = false {
+        didSet { savePreferences() }
+    }
 
     private let userDefaultsKey = "clip_stash_tasks"
-    private let maxActiveTasks = 3
+    private let preferencesKey = "clip_stash_task_preferences"
 
     // 當前作用中的任務
     var activeTask: ClipTask? {
@@ -31,28 +38,41 @@ final class TaskManager: ObservableObject, Sendable {
 
     private init() {
         loadTasks()
+        loadPreferences()
     }
 
     /// 測試用初始化（不讀取 UserDefaults）
     init(forTesting tasks: [ClipTask] = []) {
         self.tasks = tasks
         self.activeTaskId = tasks.first(where: { $0.status == .active })?.id
+        self.isAutoCollectEnabled = false
+        self.isCollectionFilterActive = false
     }
 
     // MARK: - Task Management
 
-    /// 建立新任務
+    /// 建立新收集（名稱為必填）
     func createTask(name: String, slackChannel: String = "") -> ClipTask? {
-        // 限制同時進行中的任務數量
-        guard activeTasks.count < maxActiveTasks else {
-            return nil
-        }
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
 
-        let task = ClipTask(name: name, slackChannel: slackChannel)
+        let task = ClipTask(name: trimmed, slackChannel: slackChannel)
         tasks.insert(task, at: 0)
         activeTaskId = task.id
+        isCollectionFilterActive = true
         saveTasks()
         return task
+    }
+
+    /// 選擇收集並切換為「只看此收集」
+    func selectCollection(_ task: ClipTask) {
+        activeTaskId = task.id
+        isCollectionFilterActive = true
+    }
+
+    /// 回到全部歷史
+    func showAllHistory() {
+        isCollectionFilterActive = false
     }
 
     /// 刪除任務
@@ -113,9 +133,11 @@ final class TaskManager: ObservableObject, Sendable {
 
     // MARK: - Item Management
 
-    /// 加入項目到任務
+    /// 加入項目到收集（同步 ClipItem.taskId 與 TaskItem）
     func addItemToTask(_ clipItem: ClipItem, task: ClipTask, note: String = "") {
         guard let index = tasks.firstIndex(where: { $0.id == task.id }) else { return }
+
+        ClipboardManager.shared.setTaskId(task.id, for: clipItem)
 
         let source = ContentSource.detect(from: clipItem.content)
 
@@ -124,6 +146,15 @@ final class TaskManager: ObservableObject, Sendable {
             if let channel = ContentSource.parseSlackChannel(from: clipItem.content) {
                 tasks[index].slackChannel = channel
             }
+        }
+
+        if tasks[index].items.contains(where: { $0.clipItemId == clipItem.id }) {
+            if !note.isEmpty,
+               let itemIndex = tasks[index].items.firstIndex(where: { $0.clipItemId == clipItem.id }) {
+                tasks[index].items[itemIndex].note = note
+            }
+            saveTasks()
+            return
         }
 
         let taskItem = TaskItem(
@@ -137,11 +168,30 @@ final class TaskManager: ObservableObject, Sendable {
         saveTasks()
     }
 
+    /// 自動收集時同步新項目到當前收集
+    func syncNewClipItemToActiveCollection(_ clipItem: ClipItem) {
+        guard isAutoCollectEnabled, let task = activeTask else { return }
+        addItemToTask(clipItem, task: task)
+    }
+
     /// 從任務移除項目
     func removeItemFromTask(_ taskItem: TaskItem, task: ClipTask) {
         guard let taskIndex = tasks.firstIndex(where: { $0.id == task.id }) else { return }
         tasks[taskIndex].items.removeAll { $0.id == taskItem.id }
+        if let clipItem = ClipboardManager.shared.item(withId: taskItem.clipItemId) {
+            ClipboardManager.shared.clearTaskId(for: clipItem)
+        }
         saveTasks()
+    }
+
+    /// 從收集移除（依 ClipItem）
+    func removeClipItemFromCollection(_ clipItem: ClipItem) {
+        if let taskId = clipItem.taskId,
+           let taskIndex = tasks.firstIndex(where: { $0.id == taskId }) {
+            tasks[taskIndex].items.removeAll { $0.clipItemId == clipItem.id }
+            saveTasks()
+        }
+        ClipboardManager.shared.clearTaskId(for: clipItem)
     }
 
     /// 更新項目備註
@@ -169,7 +219,12 @@ final class TaskManager: ObservableObject, Sendable {
 
     /// 檢查項目是否已在任務中
     func isItemInTask(_ clipItem: ClipItem, task: ClipTask) -> Bool {
-        task.items.contains { $0.clipItemId == clipItem.id }
+        clipItem.taskId == task.id || task.items.contains { $0.clipItemId == clipItem.id }
+    }
+
+    /// 收集中的項目數量（以 ClipItem.taskId 為準）
+    func collectionItemCount(for taskId: UUID) -> Int {
+        ClipboardManager.shared.items.filter { $0.taskId == taskId }.count
     }
 
     // MARK: - Export
@@ -221,5 +276,31 @@ final class TaskManager: ObservableObject, Sendable {
             // 恢復到第一個進行中的任務
             activeTaskId = activeTasks.first?.id
         }
+    }
+
+    // MARK: - Preferences
+
+    private struct TaskPreferences: Codable {
+        var isAutoCollectEnabled: Bool
+        var isCollectionFilterActive: Bool
+    }
+
+    private func savePreferences() {
+        let prefs = TaskPreferences(
+            isAutoCollectEnabled: isAutoCollectEnabled,
+            isCollectionFilterActive: isCollectionFilterActive
+        )
+        if let encoded = try? JSONEncoder().encode(prefs) {
+            UserDefaults.standard.set(encoded, forKey: preferencesKey)
+        }
+    }
+
+    private func loadPreferences() {
+        guard let data = UserDefaults.standard.data(forKey: preferencesKey),
+              let prefs = try? JSONDecoder().decode(TaskPreferences.self, from: data) else {
+            return
+        }
+        isAutoCollectEnabled = prefs.isAutoCollectEnabled
+        isCollectionFilterActive = prefs.isCollectionFilterActive
     }
 }

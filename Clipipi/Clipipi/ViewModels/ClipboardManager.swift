@@ -83,6 +83,12 @@ final class ClipboardManager: ObservableObject, Sendable {
             }
         }
 
+        // 收集篩選
+        if TaskManager.shared.isCollectionFilterActive,
+           let taskId = TaskManager.shared.activeTaskId {
+            result = result.filter { $0.taskId == taskId }
+        }
+
         // 分離釘選
         let pinned = result.filter { $0.isPinned }
         let unpinned = result.filter { !$0.isPinned }
@@ -95,6 +101,22 @@ final class ClipboardManager: ObservableObject, Sendable {
 
     var unpinnedItems: [ClipItem] {
         filteredItems.filter { !$0.isPinned }
+    }
+
+    /// 當前收集中、且未釘選的項目（全部歷史模式下顯示於頂部區塊）
+    var activeCollectionUnpinnedItems: [ClipItem] {
+        guard !TaskManager.shared.isCollectionFilterActive,
+              let taskId = TaskManager.shared.activeTaskId else { return [] }
+        return unpinnedItems.filter { $0.taskId == taskId }
+    }
+
+    /// 不屬於當前收集的未釘選項目
+    var otherUnpinnedItems: [ClipItem] {
+        guard !TaskManager.shared.isCollectionFilterActive,
+              let taskId = TaskManager.shared.activeTaskId else {
+            return unpinnedItems
+        }
+        return unpinnedItems.filter { $0.taskId != taskId }
     }
 
     var itemCount: Int {
@@ -204,19 +226,33 @@ final class ClipboardManager: ObservableObject, Sendable {
         // 移除已存在的相同內容（去重 + 提升）
         items.removeAll { $0.content == content && !$0.isPinned && $0.type != .image }
 
-        let newItem = ClipItem(content: content, sourceBundleId: sourceBundleId, sourceAppName: sourceAppName)
+        var newItem = ClipItem(content: content, sourceBundleId: sourceBundleId, sourceAppName: sourceAppName)
+        if TaskManager.shared.isAutoCollectEnabled, let taskId = TaskManager.shared.activeTaskId {
+            newItem.taskId = taskId
+        }
         items.insert(newItem, at: 0)
 
         enforceMaxItems()
         saveItems()
+
+        if newItem.taskId != nil {
+            TaskManager.shared.syncNewClipItemToActiveCollection(newItem)
+        }
     }
 
     func addImageItem(imageData: Data, sourceBundleId: String? = nil, sourceAppName: String? = nil) {
-        let newItem = ClipItem(imageData: imageData, sourceBundleId: sourceBundleId, sourceAppName: sourceAppName)
+        var newItem = ClipItem(imageData: imageData, sourceBundleId: sourceBundleId, sourceAppName: sourceAppName)
+        if TaskManager.shared.isAutoCollectEnabled, let taskId = TaskManager.shared.activeTaskId {
+            newItem.taskId = taskId
+        }
         items.insert(newItem, at: 0)
 
         enforceMaxItems()
         saveItems()
+
+        if newItem.taskId != nil {
+            TaskManager.shared.syncNewClipItemToActiveCollection(newItem)
+        }
 
         // 非同步 OCR 辨識
         let itemId = newItem.id
@@ -242,6 +278,7 @@ final class ClipboardManager: ObservableObject, Sendable {
     }
 
     func deleteItem(_ item: ClipItem) {
+        TaskManager.shared.removeClipItemFromCollection(item)
         items.removeAll { $0.id == item.id }
         saveItems()
     }
@@ -404,6 +441,22 @@ final class ClipboardManager: ObservableObject, Sendable {
 
     func indexOfItem(_ item: ClipItem) -> Int? {
         filteredItems.firstIndex(where: { $0.id == item.id })
+    }
+
+    func item(withId id: UUID) -> ClipItem? {
+        items.first { $0.id == id }
+    }
+
+    func setTaskId(_ taskId: UUID, for item: ClipItem) {
+        guard let index = items.firstIndex(where: { $0.id == item.id }) else { return }
+        items[index].taskId = taskId
+        saveItems()
+    }
+
+    func clearTaskId(for item: ClipItem) {
+        guard let index = items.firstIndex(where: { $0.id == item.id }) else { return }
+        items[index].taskId = nil
+        saveItems()
     }
 
     // MARK: - Tags

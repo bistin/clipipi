@@ -7,6 +7,8 @@ struct MenuBarView: View {
     @State private var showHelp = false
     @State private var showFilters = false
     @State private var showSettings = false
+    @State private var showCreateCollection = false
+    @State private var newCollectionName = ""
 
     var body: some View {
         VStack(spacing: 0) {
@@ -69,6 +71,10 @@ struct MenuBarView: View {
                     isSearchFocused = true
                     return true
                 }
+                if press.character == "t" {
+                    toggleCollectionFilter()
+                    return true
+                }
                 if let num = press.character.wholeNumberValue, num >= 1, num <= 9 {
                     clipboardManager.pasteItemAtIndex(num - 1)
                     return true
@@ -81,53 +87,167 @@ struct MenuBarView: View {
     // MARK: - Header
 
     private var headerView: some View {
-        HStack {
-            Text("Clipipi")
-                .font(.headline)
+        VStack(spacing: 8) {
+            HStack {
+                Text("Clipipi")
+                    .font(.headline)
 
-            Spacer()
+                Spacer()
 
-            // 任務模式按鈕
-            Button(action: {
-                WindowManager.shared.openTaskModeWindow()
-                PanelManager.shared.hidePanel()
-            }) {
-                Image(systemName: "checklist")
-                    .font(.system(size: 14))
-                    .foregroundStyle(taskManager.activeTasks.isEmpty ? .secondary : Color.accentColor)
-            }
-            .buttonStyle(.plain)
-            .help("任務模式")
-
-            // 當前任務指示器
-            if let activeTask = taskManager.activeTask {
-                Text(activeTask.name)
-                    .font(.caption)
-                    .lineLimit(1)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(Color.accentColor.opacity(0.2))
-                    .cornerRadius(4)
-            }
-
-            Button(action: {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    showHelp.toggle()
+                Button(action: {
+                    WindowManager.shared.openTaskModeWindow()
+                    PanelManager.shared.hidePanel()
+                }) {
+                    Image(systemName: "checklist")
+                        .font(.system(size: 14))
+                        .foregroundStyle(taskManager.activeTasks.isEmpty ? .secondary : Color.accentColor)
                 }
-            }) {
-                Image(systemName: showHelp ? "xmark.circle.fill" : "questionmark.circle")
-                    .font(.system(size: 16))
+                .buttonStyle(.plain)
+                .help("進階整理")
+
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        showHelp.toggle()
+                    }
+                }) {
+                    Image(systemName: showHelp ? "xmark.circle.fill" : "questionmark.circle")
+                        .font(.system(size: 16))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help(showHelp ? "關閉說明" : "使用說明")
+
+                Text("\(clipboardManager.itemCount) 筆")
+                    .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
-            .buttonStyle(.plain)
-            .help(showHelp ? "關閉說明" : "使用說明")
 
-            Text("\(clipboardManager.itemCount) 筆")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            collectionBar
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
+    }
+
+    private var collectionBar: some View {
+        HStack(spacing: 8) {
+            Menu {
+                Button(action: {
+                    taskManager.showAllHistory()
+                }) {
+                    Label("全部歷史", systemImage: "clock")
+                }
+
+                if !taskManager.activeTasks.isEmpty {
+                    Divider()
+                    ForEach(taskManager.activeTasks) { task in
+                        Button(action: {
+                            taskManager.selectCollection(task)
+                        }) {
+                            HStack {
+                                Text(task.name)
+                                if taskManager.activeTaskId == task.id {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Divider()
+
+                Button(action: {
+                    newCollectionName = ""
+                    showCreateCollection = true
+                }) {
+                    Label("新收集…", systemImage: "plus")
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: taskManager.isCollectionFilterActive ? "tray.full.fill" : "clock")
+                        .font(.system(size: 11))
+                    Text(collectionBarTitle)
+                        .font(.caption)
+                        .lineLimit(1)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 9))
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(
+                    taskManager.isCollectionFilterActive
+                        ? Color.accentColor.opacity(0.15)
+                        : Color.secondary.opacity(0.1)
+                )
+                .cornerRadius(6)
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+
+            if taskManager.isCollectionFilterActive, let task = taskManager.activeTask {
+                Text("\(taskManager.collectionItemCount(for: task.id)) 筆")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+
+                Button(action: {
+                    taskManager.copyMarkdownToClipboard(task)
+                }) {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 11))
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+                .help("複製 Markdown")
+            }
+
+            Spacer()
+
+            Toggle(isOn: $taskManager.isAutoCollectEnabled) {
+                Text("自動收集")
+                    .font(.caption2)
+            }
+            .toggleStyle(.switch)
+            .controlSize(.mini)
+            .disabled(taskManager.activeTaskId == nil)
+            .help(taskManager.activeTaskId == nil ? "請先選擇或建立收集" : "複製時自動加入當前收集")
+        }
+        .alert("新收集", isPresented: $showCreateCollection) {
+            TextField("名稱", text: $newCollectionName)
+            Button("取消", role: .cancel) {
+                newCollectionName = ""
+            }
+            Button("建立") {
+                createCollection()
+            }
+            .disabled(newCollectionName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        } message: {
+            Text("建立後會自動切換到該收集")
+        }
+    }
+
+    private var collectionBarTitle: String {
+        if taskManager.isCollectionFilterActive, let task = taskManager.activeTask {
+            return task.name
+        }
+        if let task = taskManager.activeTask {
+            return "全部 · \(task.name)"
+        }
+        return "全部歷史"
+    }
+
+    private func createCollection() {
+        let name = newCollectionName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty else { return }
+        _ = taskManager.createTask(name: name)
+        newCollectionName = ""
+    }
+
+    private func toggleCollectionFilter() {
+        guard taskManager.activeTask != nil else { return }
+        if taskManager.isCollectionFilterActive {
+            taskManager.showAllHistory()
+        } else {
+            taskManager.isCollectionFilterActive = true
+        }
     }
 
     // MARK: - Help View
@@ -138,10 +258,17 @@ struct MenuBarView: View {
                 helpSection(title: "快捷鍵", items: [
                     ("⌘⇧V", "開啟/關閉視窗"),
                     ("⌘1~9", "快速貼上前 9 筆"),
+                    ("⌘T", "切換全部/收集檢視"),
                     ("↑ / ↓", "選擇項目"),
                     ("Enter", "貼上選中項目"),
                     ("Esc", "關閉視窗"),
                     ("⌘F", "搜尋")
+                ])
+
+                helpSection(title: "收集模式", items: [
+                    ("自動收集", "開啟後複製的內容自動加入當前收集"),
+                    ("收集下拉", "切換全部歷史或只看某個收集"),
+                    ("匯出", "收集檢視中可一鍵複製 Markdown")
                 ])
 
                 helpSection(title: "操作", items: [
@@ -342,41 +469,35 @@ struct MenuBarView: View {
                     // 釘選項目
                     if !clipboardManager.pinnedItems.isEmpty {
                         ForEach(clipboardManager.pinnedItems) { item in
-                            ClipItemRow(
-                                item: item,
-                                index: clipboardManager.indexOfItem(item),
-                                isSelected: clipboardManager.selectedItemId == item.id,
-                                onPaste: { clipboardManager.pasteItem(item) },
-                                onPasteWithFormat: { format in clipboardManager.pasteItem(item, format: format) },
-                                onTogglePin: { clipboardManager.togglePin(item) },
-                                onDelete: { clipboardManager.deleteItem(item) },
-                                onAddTag: { tag in clipboardManager.addTag(tag, to: item) },
-                                onRemoveTag: { tag in clipboardManager.removeTag(tag, from: item) }
-                            )
-                            .id(item.id)
+                            clipItemRow(for: item)
+                                .id(item.id)
                         }
 
-                        // 分隔線
-                        if !clipboardManager.unpinnedItems.isEmpty {
+                        if hasUnpinnedListContent {
                             Divider()
                                 .padding(.vertical, 4)
                         }
                     }
 
-                    // 一般項目
-                    ForEach(clipboardManager.unpinnedItems) { item in
-                        ClipItemRow(
-                            item: item,
-                            index: clipboardManager.indexOfItem(item),
-                            isSelected: clipboardManager.selectedItemId == item.id,
-                            onPaste: { clipboardManager.pasteItem(item) },
-                            onPasteWithFormat: { format in clipboardManager.pasteItem(item, format: format) },
-                            onTogglePin: { clipboardManager.togglePin(item) },
-                            onDelete: { clipboardManager.deleteItem(item) },
-                            onAddTag: { tag in clipboardManager.addTag(tag, to: item) },
-                            onRemoveTag: { tag in clipboardManager.removeTag(tag, from: item) }
-                        )
-                        .id(item.id)
+                    // 收集中區塊（全部歷史模式）
+                    if !clipboardManager.activeCollectionUnpinnedItems.isEmpty {
+                        collectionSectionHeader
+
+                        ForEach(clipboardManager.activeCollectionUnpinnedItems) { item in
+                            clipItemRow(for: item)
+                                .id(item.id)
+                        }
+
+                        if !clipboardManager.otherUnpinnedItems.isEmpty {
+                            Divider()
+                                .padding(.vertical, 4)
+                        }
+                    }
+
+                    // 其他未釘選項目
+                    ForEach(displayedOtherUnpinnedItems) { item in
+                        clipItemRow(for: item)
+                            .id(item.id)
                     }
                 }
                 .padding(.vertical, 4)
@@ -391,6 +512,50 @@ struct MenuBarView: View {
         }
     }
 
+    private var hasUnpinnedListContent: Bool {
+        !clipboardManager.activeCollectionUnpinnedItems.isEmpty
+            || !displayedOtherUnpinnedItems.isEmpty
+    }
+
+    private var displayedOtherUnpinnedItems: [ClipItem] {
+        if taskManager.isCollectionFilterActive {
+            return clipboardManager.unpinnedItems
+        }
+        return clipboardManager.otherUnpinnedItems
+    }
+
+    private var collectionSectionHeader: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "tray.full.fill")
+                .font(.system(size: 10))
+            Text("收集中")
+                .font(.caption2.bold())
+            if let task = taskManager.activeTask {
+                Text("· \(task.name)")
+                    .font(.caption2)
+                    .lineLimit(1)
+            }
+            Spacer()
+        }
+        .foregroundStyle(Color.accentColor)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+    }
+
+    private func clipItemRow(for item: ClipItem) -> some View {
+        ClipItemRow(
+            item: item,
+            index: clipboardManager.indexOfItem(item),
+            isSelected: clipboardManager.selectedItemId == item.id,
+            onPaste: { clipboardManager.pasteItem(item) },
+            onPasteWithFormat: { format in clipboardManager.pasteItem(item, format: format) },
+            onTogglePin: { clipboardManager.togglePin(item) },
+            onDelete: { clipboardManager.deleteItem(item) },
+            onAddTag: { tag in clipboardManager.addTag(tag, to: item) },
+            onRemoveTag: { tag in clipboardManager.removeTag(tag, from: item) }
+        )
+    }
+
     // MARK: - Empty State
 
     private var emptyStateView: some View {
@@ -401,7 +566,18 @@ struct MenuBarView: View {
                 .font(.system(size: 40))
                 .foregroundStyle(.tertiary)
 
-            if clipboardManager.searchText.isEmpty {
+            if taskManager.isCollectionFilterActive, clipboardManager.searchText.isEmpty {
+                Text("此收集尚無項目")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                if taskManager.isAutoCollectEnabled {
+                    Text("開啟自動收集後，複製的內容會出現在這裡")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 24)
+                }
+            } else if clipboardManager.searchText.isEmpty {
                 Text("尚無剪貼簿歷史")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)

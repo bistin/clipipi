@@ -93,6 +93,21 @@ struct ClipItemRow: View {
                         .cornerRadius(3)
                     }
 
+                    // 收集標記
+                    if let taskId = item.taskId,
+                       let task = taskManager.tasks.first(where: { $0.id == taskId }) {
+                        HStack(spacing: 2) {
+                            Image(systemName: "tray.full.fill")
+                                .font(.system(size: 9))
+                            Text(task.name)
+                                .font(.system(size: 9))
+                        }
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 1)
+                        .background(Color.accentColor.opacity(0.15))
+                        .cornerRadius(3)
+                    }
+
                     // 來源 App
                     if let appName = item.sourceAppName {
                         HStack(spacing: 3) {
@@ -138,24 +153,16 @@ struct ClipItemRow: View {
                     .buttonStyle(.plain)
                     .help("貼上")
 
-                    // 加入任務（永遠顯示）
+                    // 加入/移出收集
                     Button(action: {
-                        if taskManager.activeTask != nil {
-                            taskManager.quickAddToActiveTask(item)
-                        } else if !taskManager.activeTasks.isEmpty {
-                            showTaskPopover.toggle()
-                        } else {
-                            // 沒有任務時，開啟任務模式視窗
-                            WindowManager.shared.openTaskModeWindow()
-                            PanelManager.shared.hidePanel()
-                        }
+                        handleCollectionAction()
                     }) {
-                        Image(systemName: "plus.square.on.square")
+                        Image(systemName: collectionActionIcon)
                             .font(.system(size: 12))
                     }
                     .buttonStyle(.plain)
-                    .foregroundStyle(taskManager.activeTasks.isEmpty ? Color.secondary : Color.green)
-                    .help(taskManager.activeTasks.isEmpty ? "開啟任務模式" : (taskManager.activeTask != nil ? "加入當前任務" : "加入任務"))
+                    .foregroundStyle(collectionActionColor)
+                    .help(collectionActionHelp)
                     .popover(isPresented: $showTaskPopover, arrowEdge: .bottom) {
                         taskPopoverContent
                     }
@@ -230,6 +237,58 @@ struct ClipItemRow: View {
         }
     }
 
+    private var isInActiveCollection: Bool {
+        guard let taskId = item.taskId,
+              let activeId = taskManager.activeTaskId else { return false }
+        return taskId == activeId
+    }
+
+    private var collectionActionIcon: String {
+        if isInActiveCollection {
+            return "tray.full.fill"
+        }
+        if item.taskId != nil {
+            return "tray.and.arrow.down.fill"
+        }
+        return "plus.square.on.square"
+    }
+
+    private var collectionActionColor: Color {
+        if isInActiveCollection { return Color.accentColor }
+        if taskManager.activeTask != nil { return .green }
+        return .secondary
+    }
+
+    private var collectionActionHelp: String {
+        if isInActiveCollection {
+            return "移出收集"
+        }
+        if let task = taskManager.activeTask {
+            return "加入「\(task.name)」"
+        }
+        if !taskManager.activeTasks.isEmpty {
+            return "加入收集"
+        }
+        return "建立收集"
+    }
+
+    private func handleCollectionAction() {
+        if isInActiveCollection {
+            taskManager.removeClipItemFromCollection(item)
+            return
+        }
+        if let task = taskManager.activeTask {
+            taskManager.addItemToTask(item, task: task)
+            return
+        }
+        if !taskManager.activeTasks.isEmpty {
+            showTaskPopover.toggle()
+            return
+        }
+        WindowManager.shared.openTaskModeWindow()
+        PanelManager.shared.hidePanel()
+    }
+
     // MARK: - Tag Popover
 
     private var tagPopoverContent: some View {
@@ -286,12 +345,13 @@ struct ClipItemRow: View {
 
     private var taskPopoverContent: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("加入任務")
+            Text("加入收集")
                 .font(.headline)
 
             ForEach(taskManager.activeTasks) { task in
                 Button(action: {
                     taskManager.addItemToTask(item, task: task)
+                    taskManager.setActiveTask(task)
                     showTaskPopover = false
                 }) {
                     HStack {

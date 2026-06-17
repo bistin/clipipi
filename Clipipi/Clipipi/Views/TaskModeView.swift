@@ -49,12 +49,11 @@ struct TaskModeView: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(Color.accentColor)
-                .disabled(taskManager.activeTasks.count >= 3)
             }
 
             // 進行中的任務
             if !taskManager.activeTasks.isEmpty {
-                Section("進行中 (\(taskManager.activeTasks.count)/3)") {
+                Section("進行中 (\(taskManager.activeTasks.count))") {
                     ForEach(taskManager.activeTasks) { task in
                         TaskSidebarRow(task: task, isActive: taskManager.activeTaskId == task.id)
                             .tag(task)

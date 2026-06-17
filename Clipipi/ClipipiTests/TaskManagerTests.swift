@@ -26,27 +26,35 @@ struct TaskManagerTests {
         #expect(manager.activeTaskId == task?.id)
     }
 
-    @Test("建立任務上限 3 個")
-    func createTaskLimit() {
+    @Test("空白名稱無法建立任務")
+    func createTaskRejectsEmptyName() {
+        let manager = makeManager()
+        let task = manager.createTask(name: "   ")
+        #expect(task == nil)
+        #expect(manager.tasks.isEmpty)
+    }
+
+    @Test("可建立多個進行中任務")
+    func createMultipleActiveTasks() {
         let manager = makeManager()
         _ = manager.createTask(name: "Task 1")
         _ = manager.createTask(name: "Task 2")
         _ = manager.createTask(name: "Task 3")
         let fourth = manager.createTask(name: "Task 4")
 
-        #expect(fourth == nil)
-        #expect(manager.tasks.count == 3)
+        #expect(fourth != nil)
+        #expect(manager.tasks.count == 4)
     }
 
-    @Test("已完成的任務不算在上限內")
-    func completedTasksNotCountedInLimit() {
-        let completed = ClipTask(name: "Done", status: .completed)
-        let manager = makeManager(tasks: [completed])
-        _ = manager.createTask(name: "Task 1")
-        _ = manager.createTask(name: "Task 2")
-        _ = manager.createTask(name: "Task 3")
+    @Test("選擇收集會啟用收集篩選")
+    func selectCollectionEnablesFilter() {
+        let manager = makeManager()
+        let task = manager.createTask(name: "Bug Fix")!
+        manager.showAllHistory()
+        manager.selectCollection(task)
 
-        #expect(manager.tasks.count == 4)
+        #expect(manager.activeTaskId == task.id)
+        #expect(manager.isCollectionFilterActive == true)
     }
 
     // MARK: - Task Deletion
