@@ -15,6 +15,8 @@ final class PanelManager: NSObject, Sendable {
     private var visualEffectView: NSVisualEffectView?
     /// 開啟 panel 前的 App，貼上後要把焦點還給它
     private var previousApp: NSRunningApplication?
+    /// 設定頁開啟時暫停自動關閉（避免切換登入項目時 panel 消失）
+    var suppressAutoHide = false
 
     var isVisible: Bool {
         panel?.isVisible ?? false
@@ -79,6 +81,7 @@ final class PanelManager: NSObject, Sendable {
     }
 
     @objc private func windowDidResignKey() {
+        guard !suppressAutoHide else { return }
         hidePanel()
     }
 

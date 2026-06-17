@@ -3,6 +3,9 @@ import Carbon
 import UniformTypeIdentifiers
 
 struct SettingsView: View {
+    var isEmbedded: Bool = false
+    var onClose: (() -> Void)?
+
     @ObservedObject private var hotkeyManager = HotkeyManager.shared
     @ObservedObject private var clipboardManager = ClipboardManager.shared
     @ObservedObject private var updateChecker = UpdateChecker.shared
@@ -13,31 +16,74 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                Text("設定")
-                    .font(.title2)
-                    .fontWeight(.semibold)
+        VStack(spacing: 0) {
+            if isEmbedded {
+                HStack {
+                    Button(action: { onClose?() }) {
+                        Label("返回", systemImage: "chevron.left")
+                            .font(.subheadline)
+                    }
+                    .buttonStyle(.plain)
+
+                    Spacer()
+
+                    Text("設定")
+                        .font(.headline)
+
+                    Spacer()
+
+                    Color.clear.frame(width: 48)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
 
                 Divider()
-
-                hotkeySection
-                accessibilitySection
-                generalSection
-                exclusionSection
-                updateSection
-
-                HStack {
-                    Spacer()
-                    Button("完成") {
-                        dismiss()
-                    }
-                    .keyboardShortcut(.defaultAction)
-                }
             }
-            .padding(24)
+
+            ScrollView {
+                VStack(spacing: 16) {
+                    if !isEmbedded {
+                        Text("設定")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                        Divider()
+                    }
+
+                    hotkeySection
+                    accessibilitySection
+                    generalSection
+                    exclusionSection
+                    updateSection
+
+                    if !isEmbedded {
+                        HStack {
+                            Spacer()
+                            Button("完成") {
+                                dismiss()
+                            }
+                            .keyboardShortcut(.defaultAction)
+                        }
+                    }
+                }
+                .padding(isEmbedded ? 12 : 24)
+            }
         }
-        .frame(width: 420, height: 600)
+        .frame(
+            width: isEmbedded ? nil : 420,
+            height: isEmbedded ? nil : 600
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onAppear {
+            if isEmbedded {
+                PanelManager.shared.suppressAutoHide = true
+            }
+            launchAtLogin.refresh()
+        }
+        .onDisappear {
+            if isEmbedded {
+                PanelManager.shared.suppressAutoHide = false
+            }
+        }
     }
 
     // MARK: - Hotkey
@@ -177,12 +223,24 @@ struct SettingsView: View {
                 }
             }
             .toggleStyle(.switch)
+
+            if let message = launchAtLogin.statusMessage {
+                Label(message, systemImage: "checkmark.circle.fill")
+                    .font(.caption)
+                    .foregroundStyle(.green)
+            }
+
+            if let error = launchAtLogin.lastError {
+                Label(error, systemImage: "exclamationmark.triangle.fill")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(nsColor: .controlBackgroundColor))
         .cornerRadius(8)
-        .onAppear { launchAtLogin.refresh() }
     }
 
     // MARK: - Exclusion List

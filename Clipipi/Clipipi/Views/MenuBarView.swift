@@ -12,6 +12,11 @@ struct MenuBarView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            if showSettings {
+                SettingsView(isEmbedded: true, onClose: {
+                    showSettings = false
+                })
+            } else {
             // 標題列
             headerView
 
@@ -42,6 +47,7 @@ struct MenuBarView: View {
                 // 底部工具列
                 footerView
             }
+            }
         }
         .frame(width: 320, height: 480)
         .background(Color(nsColor: .windowBackgroundColor).opacity(0.001))
@@ -59,7 +65,9 @@ struct MenuBarView: View {
                 return true
             }
             if press.matches(.escape) {
-                if showHelp {
+                if showSettings {
+                    showSettings = false
+                } else if showHelp {
                     showHelp = false
                 } else {
                     PanelManager.shared.hidePanel()
@@ -586,6 +594,7 @@ struct MenuBarView: View {
             Spacer()
 
             Button(action: {
+                showHelp = false
                 showSettings = true
             }) {
                 Image(systemName: "gearshape")
@@ -594,9 +603,6 @@ struct MenuBarView: View {
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
             .help("設定")
-            .sheet(isPresented: $showSettings) {
-                SettingsView()
-            }
 
             Button(action: {
                 NSApp.terminate(nil)

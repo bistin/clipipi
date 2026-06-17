@@ -10,6 +10,8 @@ final class LaunchAtLoginManager: ObservableObject, Sendable {
 
     /// 是否已註冊為登入啟動項目。
     @Published private(set) var isEnabled: Bool
+    @Published private(set) var statusMessage: String?
+    @Published private(set) var lastError: String?
 
     private init() {
         isEnabled = (SMAppService.mainApp.status == .enabled)
@@ -22,6 +24,9 @@ final class LaunchAtLoginManager: ObservableObject, Sendable {
 
     /// 開啟或關閉開機自動啟動。
     func setEnabled(_ enabled: Bool) {
+        statusMessage = nil
+        lastError = nil
+
         do {
             if enabled {
                 if SMAppService.mainApp.status != .enabled {
@@ -33,8 +38,14 @@ final class LaunchAtLoginManager: ObservableObject, Sendable {
                 }
             }
         } catch {
+            lastError = error.localizedDescription
             NSLog("[Clipipi] 設定開機啟動失敗: \(error.localizedDescription)")
         }
+
         refresh()
+
+        if lastError == nil {
+            statusMessage = isEnabled ? "已開啟開機自動啟動" : "已關閉開機自動啟動"
+        }
     }
 }
