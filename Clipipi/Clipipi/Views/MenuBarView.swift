@@ -6,17 +6,11 @@ struct MenuBarView: View {
     @FocusState private var isSearchFocused: Bool
     @State private var showHelp = false
     @State private var showFilters = false
-    @State private var showSettings = false
     @State private var showCreateCollection = false
     @State private var newCollectionName = ""
 
     var body: some View {
         VStack(spacing: 0) {
-            if showSettings {
-                SettingsView(isEmbedded: true, onClose: {
-                    showSettings = false
-                })
-            } else {
             // 標題列
             headerView
 
@@ -47,16 +41,9 @@ struct MenuBarView: View {
                 // 底部工具列
                 footerView
             }
-            }
         }
-        .frame(
-            width: showSettings ? 380 : 320,
-            height: showSettings ? 580 : 480
-        )
+        .frame(width: 320, height: 480)
         .background(Color(nsColor: .windowBackgroundColor).opacity(0.001))
-        .onChange(of: showSettings) { isOpen in
-            PanelManager.shared.setSettingsMode(isOpen)
-        }
         .onKeyDownCompat { press in
             if press.matches(.downArrow) {
                 clipboardManager.selectNext()
@@ -71,9 +58,7 @@ struct MenuBarView: View {
                 return true
             }
             if press.matches(.escape) {
-                if showSettings {
-                    showSettings = false
-                } else if showHelp {
+                if showHelp {
                     showHelp = false
                 } else {
                     PanelManager.shared.hidePanel()
@@ -600,8 +585,7 @@ struct MenuBarView: View {
             Spacer()
 
             Button(action: {
-                showHelp = false
-                showSettings = true
+                WindowManager.shared.openSettingsWindow()
             }) {
                 Image(systemName: "gearshape")
                     .font(.caption)

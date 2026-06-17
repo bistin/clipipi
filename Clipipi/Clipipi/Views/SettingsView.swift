@@ -3,9 +3,6 @@ import Carbon
 import UniformTypeIdentifiers
 
 struct SettingsView: View {
-    var isEmbedded: Bool = false
-    var onClose: (() -> Void)?
-
     @ObservedObject private var hotkeyManager = HotkeyManager.shared
     @ObservedObject private var clipboardManager = ClipboardManager.shared
     @ObservedObject private var updateChecker = UpdateChecker.shared
@@ -13,101 +10,39 @@ struct SettingsView: View {
     @State private var isRecording = false
     @State private var recordedKeyCode: UInt16?
     @State private var recordedModifiers: NSEvent.ModifierFlags = []
-    @Environment(\.dismiss) private var dismiss
-
-    private var sectionPadding: CGFloat { isEmbedded ? 10 : 16 }
-    private var sectionSpacing: CGFloat { isEmbedded ? 8 : 12 }
-    private var contentSpacing: CGFloat { isEmbedded ? 10 : 16 }
 
     var body: some View {
-        VStack(spacing: 0) {
-            if isEmbedded {
-                HStack {
-                    Button(action: { onClose?() }) {
-                        Label("返回", systemImage: "chevron.left")
-                            .font(.subheadline)
-                    }
-                    .buttonStyle(.plain)
-
-                    Spacer()
-
-                    Text("設定")
-                        .font(.headline)
-
-                    Spacer()
-
-                    Color.clear.frame(width: 48)
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
-
-                Divider()
+        ScrollView(.vertical, showsIndicators: true) {
+            VStack(spacing: 16) {
+                hotkeySection
+                accessibilitySection
+                generalSection
+                exclusionSection
+                updateSection
             }
-
-            ScrollView(.vertical, showsIndicators: true) {
-                VStack(spacing: contentSpacing) {
-                    if !isEmbedded {
-                        Text("設定")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                        Divider()
-                    }
-
-                    hotkeySection
-                    accessibilitySection
-                    generalSection
-                    exclusionSection
-                    updateSection
-
-                    if !isEmbedded {
-                        HStack {
-                            Spacer()
-                            Button("完成") {
-                                dismiss()
-                            }
-                            .keyboardShortcut(.defaultAction)
-                        }
-                    }
-                }
-                .padding(isEmbedded ? 10 : 24)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(20)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(
-            width: isEmbedded ? nil : 420,
-            height: isEmbedded ? nil : 600
-        )
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(minWidth: 400, minHeight: 480)
         .onAppear {
-            if isEmbedded {
-                PanelManager.shared.suppressAutoHide = true
-            }
             launchAtLogin.refresh()
-        }
-        .onDisappear {
-            if isEmbedded {
-                PanelManager.shared.suppressAutoHide = false
-                PanelManager.shared.setSettingsMode(false)
-            }
+            hotkeyManager.refreshAccessibilityStatus()
         }
     }
 
     // MARK: - Hotkey
 
     private var hotkeySection: some View {
-        VStack(alignment: .leading, spacing: sectionSpacing) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("全域快捷鍵")
-                .font(isEmbedded ? .subheadline.weight(.semibold) : .headline)
+                .font(.headline)
 
-            if isEmbedded {
-                Text("開啟 Clipipi")
-                    .font(.caption)
+            HStack {
+                Text("開啟 Clipipi：")
                     .foregroundStyle(.secondary)
+                Spacer()
+                hotkeyButton
             }
-
-            hotkeyCaptureButton
-                .frame(maxWidth: isEmbedded ? .infinity : nil, alignment: isEmbedded ? .center : .trailing)
 
             Button("恢復預設 (⌘⇧V)") {
                 hotkeyManager.updateSettings(HotkeySettings())
@@ -117,25 +52,7 @@ struct SettingsView: View {
             .foregroundStyle(.secondary)
             .buttonStyle(.plain)
         }
-        .padding(sectionPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(nsColor: .controlBackgroundColor))
-        .cornerRadius(8)
-    }
-
-    private var hotkeyCaptureButton: some View {
-        Group {
-            if !isEmbedded {
-                HStack {
-                    Text("開啟 Clipipi：")
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    hotkeyButton
-                }
-            } else {
-                hotkeyButton
-            }
-        }
+        .sectionCard()
     }
 
     private var hotkeyButton: some View {
@@ -154,8 +71,7 @@ struct SettingsView: View {
             }
         }
         .buttonStyle(.bordered)
-        .controlSize(isEmbedded ? .small : .regular)
-        .frame(minWidth: isEmbedded ? nil : 140)
+        .frame(minWidth: 140)
         .onKeyDownCompat { press in
             guard isRecording else { return false }
 
@@ -183,72 +99,44 @@ struct SettingsView: View {
     // MARK: - Accessibility
 
     private var accessibilitySection: some View {
-        VStack(alignment: .leading, spacing: sectionSpacing) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("輔助使用權限")
-                .font(isEmbedded ? .subheadline.weight(.semibold) : .headline)
+                .font(.headline)
 
             if hotkeyManager.hasAccessibilityPermission {
                 Label("已授權", systemImage: "checkmark.circle.fill")
-                    .font(.caption)
                     .foregroundStyle(.green)
             } else {
                 Label("未授權", systemImage: "exclamationmark.triangle.fill")
-                    .font(.caption)
                     .foregroundStyle(.orange)
             }
 
-            Text(isEmbedded
-                 ? "請在系統設定的輔助使用中開啟 Clipipi。若清單沒有，先按「請求權限」。"
-                 : "全域快捷鍵與自動貼上需要此權限。請在輔助使用清單中開啟 Clipipi。")
+            Text("全域快捷鍵與自動貼上需要此權限。請在輔助使用清單中開啟 Clipipi；若清單沒有，先按「請求權限」。")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
-            if isEmbedded {
-                VStack(spacing: 6) {
-                    Button("請求權限") {
-                        hotkeyManager.requestAccessibilityPermission()
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                    .frame(maxWidth: .infinity)
-
-                    Button("開啟系統設定") {
-                        hotkeyManager.openAccessibilitySettings()
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                    .frame(maxWidth: .infinity)
+            HStack(spacing: 8) {
+                Button("請求權限") {
+                    hotkeyManager.requestAccessibilityPermission()
                 }
-            } else {
-                HStack(spacing: 8) {
-                    Button("請求權限") {
-                        hotkeyManager.requestAccessibilityPermission()
-                    }
-                    .buttonStyle(.bordered)
+                .buttonStyle(.bordered)
 
-                    Button("開啟系統設定") {
-                        hotkeyManager.openAccessibilitySettings()
-                    }
-                    .buttonStyle(.bordered)
+                Button("開啟系統設定") {
+                    hotkeyManager.openAccessibilitySettings()
                 }
+                .buttonStyle(.bordered)
             }
         }
-        .padding(sectionPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(nsColor: .controlBackgroundColor))
-        .cornerRadius(8)
-        .onAppear {
-            hotkeyManager.refreshAccessibilityStatus()
-        }
+        .sectionCard()
     }
 
     // MARK: - General
 
     private var generalSection: some View {
-        VStack(alignment: .leading, spacing: sectionSpacing) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("一般")
-                .font(isEmbedded ? .subheadline.weight(.semibold) : .headline)
+                .font(.headline)
 
             Toggle(isOn: Binding(
                 get: { launchAtLogin.isEnabled },
@@ -276,19 +164,16 @@ struct SettingsView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding(sectionPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(nsColor: .controlBackgroundColor))
-        .cornerRadius(8)
+        .sectionCard()
     }
 
     // MARK: - Exclusion List
 
     private var exclusionSection: some View {
-        VStack(alignment: .leading, spacing: sectionSpacing) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("排除的 App")
-                    .font(isEmbedded ? .subheadline.weight(.semibold) : .headline)
+                    .font(.headline)
                 Spacer()
                 Button(action: pickAppToExclude) {
                     Label("加入…", systemImage: "plus")
@@ -316,10 +201,7 @@ struct SettingsView: View {
                 }
             }
         }
-        .padding(sectionPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(nsColor: .controlBackgroundColor))
-        .cornerRadius(8)
+        .sectionCard()
     }
 
     private func excludedAppRow(bundleId: String) -> some View {
@@ -359,55 +241,33 @@ struct SettingsView: View {
     // MARK: - Update
 
     private var updateSection: some View {
-        VStack(alignment: .leading, spacing: sectionSpacing) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("關於與更新")
-                .font(isEmbedded ? .subheadline.weight(.semibold) : .headline)
+                .font(.headline)
 
-            if isEmbedded {
-                HStack {
-                    Text("v\(updateChecker.currentVersion)")
-                        .font(.system(.caption, design: .monospaced))
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Button(action: { updateChecker.check() }) {
-                        if case .checking = updateChecker.state {
+            HStack {
+                Text("目前版本：")
+                    .foregroundStyle(.secondary)
+                Text("v\(updateChecker.currentVersion)")
+                    .font(.system(.body, design: .monospaced))
+                Spacer()
+                Button(action: { updateChecker.check() }) {
+                    if case .checking = updateChecker.state {
+                        HStack(spacing: 6) {
                             ProgressView().controlSize(.small)
-                        } else {
-                            Text("檢查更新")
+                            Text("檢查中…")
                         }
+                    } else {
+                        Text("檢查更新")
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                    .disabled({ if case .checking = updateChecker.state { return true } else { return false } }())
                 }
-            } else {
-                HStack {
-                    Text("目前版本：")
-                        .foregroundStyle(.secondary)
-                    Text("v\(updateChecker.currentVersion)")
-                        .font(.system(.body, design: .monospaced))
-                    Spacer()
-                    Button(action: { updateChecker.check() }) {
-                        if case .checking = updateChecker.state {
-                            HStack(spacing: 6) {
-                                ProgressView().controlSize(.small)
-                                Text("檢查中…")
-                            }
-                        } else {
-                            Text("檢查更新")
-                        }
-                    }
-                    .buttonStyle(.bordered)
-                    .disabled({ if case .checking = updateChecker.state { return true } else { return false } }())
-                }
+                .buttonStyle(.bordered)
+                .disabled({ if case .checking = updateChecker.state { return true } else { return false } }())
             }
 
             updateStatusView
         }
-        .padding(sectionPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(nsColor: .controlBackgroundColor))
-        .cornerRadius(8)
+        .sectionCard()
     }
 
     @ViewBuilder
@@ -455,7 +315,6 @@ struct SettingsView: View {
         clipboardManager.addExcludedBundleId(bid)
     }
 
-    /// 從 character 轉換為 CGEvent keyCode
     private func keyCodeFromCharacter(_ char: Character) -> UInt16 {
         let keyMap: [Character: UInt16] = [
             "a": 0x00, "s": 0x01, "d": 0x02, "f": 0x03, "h": 0x04,
@@ -468,5 +327,14 @@ struct SettingsView: View {
             "m": 0x2E,
         ]
         return keyMap[char] ?? 0xFFFF
+    }
+}
+
+private extension View {
+    func sectionCard() -> some View {
+        padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(nsColor: .controlBackgroundColor))
+            .cornerRadius(8)
     }
 }
