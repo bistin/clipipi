@@ -84,36 +84,51 @@ final class HotkeyManager: ObservableObject, Sendable {
     }
 
     func start() {
+        registerWithAccessibilitySystem()
         let trusted = checkAccessibilityPermission(showPrompt: false)
-        hasAccessibilityPermission = trusted
-        lastPermissionState = trusted
-
-        if trusted {
-            setupEventTap()
-        }
-
+        applyPermissionState(trusted)
         startPermissionCheck()
     }
 
     /// 跳出系統授權對話框（與以前一樣，由系統引導前往設定）
     func requestAccessibilityPermission() {
         NSApp.activate(ignoringOtherApps: true)
+        registerWithAccessibilitySystem()
         let trusted = checkAccessibilityPermission(showPrompt: true)
         applyPermissionState(trusted)
+    }
+
+    /// 註冊到系統輔助使用清單（必須先執行，App 才會出現在設定頁）
+    private func registerWithAccessibilitySystem() {
+        _ = checkAccessibilityPermission(showPrompt: false)
+
+        // 嘗試建立 event tap：即使失敗，也會讓系統把 App 加入輔助使用清單
+        if eventTap == nil {
+            setupEventTap()
+            if !checkAccessibilityPermission(showPrompt: false) {
+                stopEventTap()
+            }
+        }
     }
 
     /// 直接開啟系統設定的「輔助使用」頁面
     @discardableResult
     func openAccessibilitySettings() -> Bool {
-        // 選單列 App 需先取得焦點，否則 open URL 可能沒反應
         NSApp.activate(ignoringOtherApps: true)
+        registerWithAccessibilitySystem()
 
+        // 等系統寫入 TCC 清單後再開設定頁
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [self] in
+            _ = openAccessibilitySettingsURL()
+        }
+        return true
+    }
+
+    @discardableResult
+    private func openAccessibilitySettingsURL() -> Bool {
         let candidates = [
-            // macOS 13+ System Settings
             "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_Accessibility",
-            // 舊版 System Preferences
             "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
-            // 退而求其次：隱私與安全性主頁
             "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension",
         ]
 
@@ -124,7 +139,6 @@ final class HotkeyManager: ObservableObject, Sendable {
             }
         }
 
-        // 最後手段：用 open 指令
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
         process.arguments = [candidates[0]]

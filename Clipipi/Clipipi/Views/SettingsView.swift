@@ -129,7 +129,8 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("全域快捷鍵與自動貼上需要此權限。")
                 Text("• 請求權限：跳出系統對話框")
-                Text("• 開啟系統設定：直接前往輔助使用頁面")
+                Text("• 開啟系統設定：註冊 App 後前往輔助使用，在清單中開啟 Clipipi")
+                Text("若清單沒有 Clipipi，請先按「請求權限」再試。")
                 Text("若每次 build 後都要重設，請設定 Local.xcconfig 簽章。")
             }
             .font(.caption)
