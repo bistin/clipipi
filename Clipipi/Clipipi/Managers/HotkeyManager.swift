@@ -95,9 +95,46 @@ final class HotkeyManager: ObservableObject, Sendable {
         startPermissionCheck()
     }
 
-    /// 主動請求輔助使用權限（由設定頁觸發，避免每次啟動都跳系統對話框）
+    /// 開啟系統設定的「輔助使用」頁面，並觸發系統授權提示
     func requestAccessibilityPermission() {
+        openAccessibilitySettings()
+
+        // 系統對話框（部分 macOS 版本會額外跳出「開啟系統設定」提示）
         let trusted = checkAccessibilityPermission(showPrompt: true)
+        applyPermissionState(trusted)
+    }
+
+    /// 直接開啟系統設定的「輔助使用」頁面
+    @discardableResult
+    func openAccessibilitySettings() -> Bool {
+        // 選單列 App 需先取得焦點，否則 open URL 可能沒反應
+        NSApp.activate(ignoringOtherApps: true)
+
+        let candidates = [
+            // macOS 13+ System Settings
+            "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_Accessibility",
+            // 舊版 System Preferences
+            "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
+            // 退而求其次：隱私與安全性主頁
+            "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension",
+        ]
+
+        for urlString in candidates {
+            guard let url = URL(string: urlString) else { continue }
+            if NSWorkspace.shared.open(url) {
+                return true
+            }
+        }
+
+        // 最後手段：用 open 指令
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        process.arguments = [candidates[0]]
+        try? process.run()
+        return true
+    }
+
+    private func applyPermissionState(_ trusted: Bool) {
         hasAccessibilityPermission = trusted
 
         if trusted && !lastPermissionState {
@@ -107,13 +144,6 @@ final class HotkeyManager: ObservableObject, Sendable {
         }
 
         lastPermissionState = trusted
-    }
-
-    func openAccessibilitySettings() {
-        guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") else {
-            return
-        }
-        NSWorkspace.shared.open(url)
     }
 
     /// 靜默刷新權限狀態（不跳出系統對話框）
@@ -136,15 +166,7 @@ final class HotkeyManager: ObservableObject, Sendable {
 
     private func recheckPermission() {
         let currentState = checkAccessibilityPermission(showPrompt: false)
-        hasAccessibilityPermission = currentState
-
-        if currentState && !lastPermissionState {
-            setupEventTap()
-        } else if !currentState && lastPermissionState {
-            stopEventTap()
-        }
-
-        lastPermissionState = currentState
+        applyPermissionState(currentState)
     }
 
     func stop() {

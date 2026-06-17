@@ -132,13 +132,17 @@ struct SettingsView: View {
                 .fixedSize(horizontal: false, vertical: true)
 
             HStack(spacing: 8) {
-                Button("請求權限") {
+                Button {
                     hotkeyManager.requestAccessibilityPermission()
+                } label: {
+                    Label("請求權限", systemImage: "hand.raised")
                 }
                 .buttonStyle(.bordered)
 
-                Button("開啟系統設定") {
+                Button {
                     hotkeyManager.openAccessibilitySettings()
+                } label: {
+                    Label("開啟系統設定", systemImage: "gear")
                 }
                 .buttonStyle(.bordered)
             }
