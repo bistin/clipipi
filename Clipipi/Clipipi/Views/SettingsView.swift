@@ -126,23 +126,24 @@ struct SettingsView: View {
                 Spacer()
             }
 
-            Text("全域快捷鍵與自動貼上需要此權限。若每次 build 後都要重設，請用 Apple Development 簽章（見 Local.xcconfig.example）。")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("全域快捷鍵與自動貼上需要此權限。")
+                Text("• 請求權限：跳出系統對話框")
+                Text("• 開啟系統設定：直接前往輔助使用頁面")
+                Text("若每次 build 後都要重設，請設定 Local.xcconfig 簽章。")
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
 
             HStack(spacing: 8) {
-                Button {
+                Button("請求權限") {
                     hotkeyManager.requestAccessibilityPermission()
-                } label: {
-                    Label("請求權限", systemImage: "hand.raised")
                 }
                 .buttonStyle(.bordered)
 
-                Button {
+                Button("開啟系統設定") {
                     hotkeyManager.openAccessibilitySettings()
-                } label: {
-                    Label("開啟系統設定", systemImage: "gear")
                 }
                 .buttonStyle(.bordered)
             }

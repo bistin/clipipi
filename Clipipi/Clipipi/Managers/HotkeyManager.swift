@@ -95,11 +95,9 @@ final class HotkeyManager: ObservableObject, Sendable {
         startPermissionCheck()
     }
 
-    /// 開啟系統設定的「輔助使用」頁面，並觸發系統授權提示
+    /// 跳出系統授權對話框（與以前一樣，由系統引導前往設定）
     func requestAccessibilityPermission() {
-        openAccessibilitySettings()
-
-        // 系統對話框（部分 macOS 版本會額外跳出「開啟系統設定」提示）
+        NSApp.activate(ignoringOtherApps: true)
         let trusted = checkAccessibilityPermission(showPrompt: true)
         applyPermissionState(trusted)
     }
