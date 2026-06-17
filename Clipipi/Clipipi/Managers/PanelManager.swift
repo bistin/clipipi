@@ -18,6 +18,9 @@ final class PanelManager: NSObject, Sendable {
     /// 設定頁開啟時暫停自動關閉（避免切換登入項目時 panel 消失）
     var suppressAutoHide = false
 
+    private let normalPanelSize = NSSize(width: 320, height: 480)
+    private let settingsPanelSize = NSSize(width: 380, height: 580)
+
     var isVisible: Bool {
         panel?.isVisible ?? false
     }
@@ -139,5 +142,19 @@ final class PanelManager: NSObject, Sendable {
         } else {
             showPanel()
         }
+    }
+
+    /// 設定頁開啟時放大 panel，關閉時還原
+    func setSettingsMode(_ enabled: Bool) {
+        guard let panel = panel else { return }
+        let targetSize = enabled ? settingsPanelSize : normalPanelSize
+        var frame = panel.frame
+        let center = NSPoint(x: frame.midX, y: frame.midY)
+        frame.size = targetSize
+        frame.origin = NSPoint(
+            x: center.x - targetSize.width / 2,
+            y: center.y - targetSize.height / 2
+        )
+        panel.setFrame(frame, display: true, animate: true)
     }
 }

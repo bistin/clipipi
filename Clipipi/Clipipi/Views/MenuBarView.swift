@@ -49,8 +49,14 @@ struct MenuBarView: View {
             }
             }
         }
-        .frame(width: 320, height: 480)
+        .frame(
+            width: showSettings ? 380 : 320,
+            height: showSettings ? 580 : 480
+        )
         .background(Color(nsColor: .windowBackgroundColor).opacity(0.001))
+        .onChange(of: showSettings) { isOpen in
+            PanelManager.shared.setSettingsMode(isOpen)
+        }
         .onKeyDownCompat { press in
             if press.matches(.downArrow) {
                 clipboardManager.selectNext()

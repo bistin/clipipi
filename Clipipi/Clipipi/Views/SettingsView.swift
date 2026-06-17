@@ -15,6 +15,10 @@ struct SettingsView: View {
     @State private var recordedModifiers: NSEvent.ModifierFlags = []
     @Environment(\.dismiss) private var dismiss
 
+    private var sectionPadding: CGFloat { isEmbedded ? 10 : 16 }
+    private var sectionSpacing: CGFloat { isEmbedded ? 8 : 12 }
+    private var contentSpacing: CGFloat { isEmbedded ? 10 : 16 }
+
     var body: some View {
         VStack(spacing: 0) {
             if isEmbedded {
@@ -40,8 +44,8 @@ struct SettingsView: View {
                 Divider()
             }
 
-            ScrollView {
-                VStack(spacing: 16) {
+            ScrollView(.vertical, showsIndicators: true) {
+                VStack(spacing: contentSpacing) {
                     if !isEmbedded {
                         Text("設定")
                             .font(.title2)
@@ -65,8 +69,10 @@ struct SettingsView: View {
                         }
                     }
                 }
-                .padding(isEmbedded ? 12 : 24)
+                .padding(isEmbedded ? 10 : 24)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(
             width: isEmbedded ? nil : 420,
@@ -82,6 +88,7 @@ struct SettingsView: View {
         .onDisappear {
             if isEmbedded {
                 PanelManager.shared.suppressAutoHide = false
+                PanelManager.shared.setSettingsMode(false)
             }
         }
     }
@@ -89,56 +96,18 @@ struct SettingsView: View {
     // MARK: - Hotkey
 
     private var hotkeySection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: sectionSpacing) {
             Text("全域快捷鍵")
-                .font(.headline)
+                .font(isEmbedded ? .subheadline.weight(.semibold) : .headline)
 
-            HStack {
-                Text("開啟 Clipipi：")
+            if isEmbedded {
+                Text("開啟 Clipipi")
+                    .font(.caption)
                     .foregroundStyle(.secondary)
-
-                Spacer()
-
-                Button(action: {
-                    isRecording.toggle()
-                    if !isRecording {
-                        recordedKeyCode = nil
-                        recordedModifiers = []
-                    }
-                }) {
-                    if isRecording {
-                        Text("請按下快捷鍵...")
-                            .foregroundStyle(Color.accentColor)
-                            .frame(minWidth: 140)
-                    } else {
-                        Text(hotkeyManager.settings.displayString)
-                            .frame(minWidth: 140)
-                    }
-                }
-                .buttonStyle(.bordered)
-                .onKeyDownCompat { press in
-                    guard isRecording else { return false }
-
-                    let modifiers = press.modifiers
-                    guard modifiers.contains(.command) || modifiers.contains(.control) || modifiers.contains(.option) else {
-                        return true
-                    }
-
-                    let keyCode = keyCodeFromCharacter(press.character)
-                    guard keyCode != 0xFFFF else { return true }
-
-                    var cgFlags = CGEventFlags()
-                    if modifiers.contains(.command) { cgFlags.insert(.maskCommand) }
-                    if modifiers.contains(.shift) { cgFlags.insert(.maskShift) }
-                    if modifiers.contains(.option) { cgFlags.insert(.maskAlternate) }
-                    if modifiers.contains(.control) { cgFlags.insert(.maskControl) }
-
-                    let newSettings = HotkeySettings(keyCode: keyCode, modifierFlags: cgFlags.rawValue)
-                    hotkeyManager.updateSettings(newSettings)
-                    isRecording = false
-                    return true
-                }
             }
+
+            hotkeyCaptureButton
+                .frame(maxWidth: isEmbedded ? .infinity : nil, alignment: isEmbedded ? .center : .trailing)
 
             Button("恢復預設 (⌘⇧V)") {
                 hotkeyManager.updateSettings(HotkeySettings())
@@ -148,54 +117,124 @@ struct SettingsView: View {
             .foregroundStyle(.secondary)
             .buttonStyle(.plain)
         }
-        .padding()
+        .padding(sectionPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(nsColor: .controlBackgroundColor))
         .cornerRadius(8)
     }
 
+    private var hotkeyCaptureButton: some View {
+        Group {
+            if !isEmbedded {
+                HStack {
+                    Text("開啟 Clipipi：")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    hotkeyButton
+                }
+            } else {
+                hotkeyButton
+            }
+        }
+    }
+
+    private var hotkeyButton: some View {
+        Button(action: {
+            isRecording.toggle()
+            if !isRecording {
+                recordedKeyCode = nil
+                recordedModifiers = []
+            }
+        }) {
+            if isRecording {
+                Text("請按下快捷鍵...")
+                    .foregroundStyle(Color.accentColor)
+            } else {
+                Text(hotkeyManager.settings.displayString)
+            }
+        }
+        .buttonStyle(.bordered)
+        .controlSize(isEmbedded ? .small : .regular)
+        .frame(minWidth: isEmbedded ? nil : 140)
+        .onKeyDownCompat { press in
+            guard isRecording else { return false }
+
+            let modifiers = press.modifiers
+            guard modifiers.contains(.command) || modifiers.contains(.control) || modifiers.contains(.option) else {
+                return true
+            }
+
+            let keyCode = keyCodeFromCharacter(press.character)
+            guard keyCode != 0xFFFF else { return true }
+
+            var cgFlags = CGEventFlags()
+            if modifiers.contains(.command) { cgFlags.insert(.maskCommand) }
+            if modifiers.contains(.shift) { cgFlags.insert(.maskShift) }
+            if modifiers.contains(.option) { cgFlags.insert(.maskAlternate) }
+            if modifiers.contains(.control) { cgFlags.insert(.maskControl) }
+
+            let newSettings = HotkeySettings(keyCode: keyCode, modifierFlags: cgFlags.rawValue)
+            hotkeyManager.updateSettings(newSettings)
+            isRecording = false
+            return true
+        }
+    }
+
     // MARK: - Accessibility
 
     private var accessibilitySection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: sectionSpacing) {
             Text("輔助使用權限")
-                .font(.headline)
+                .font(isEmbedded ? .subheadline.weight(.semibold) : .headline)
 
-            HStack {
-                if hotkeyManager.hasAccessibilityPermission {
-                    Label("已授權", systemImage: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
-                } else {
-                    Label("未授權", systemImage: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
-                }
-                Spacer()
+            if hotkeyManager.hasAccessibilityPermission {
+                Label("已授權", systemImage: "checkmark.circle.fill")
+                    .font(.caption)
+                    .foregroundStyle(.green)
+            } else {
+                Label("未授權", systemImage: "exclamationmark.triangle.fill")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
             }
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text("全域快捷鍵與自動貼上需要此權限。")
-                Text("• 請求權限：跳出系統對話框")
-                Text("• 開啟系統設定：註冊 App 後前往輔助使用，在清單中開啟 Clipipi")
-                Text("若清單沒有 Clipipi，請先按「請求權限」再試。")
-                Text("若每次 build 後都要重設，請設定 Local.xcconfig 簽章。")
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .fixedSize(horizontal: false, vertical: true)
+            Text(isEmbedded
+                 ? "請在系統設定的輔助使用中開啟 Clipipi。若清單沒有，先按「請求權限」。"
+                 : "全域快捷鍵與自動貼上需要此權限。請在輔助使用清單中開啟 Clipipi。")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
 
-            HStack(spacing: 8) {
-                Button("請求權限") {
-                    hotkeyManager.requestAccessibilityPermission()
-                }
-                .buttonStyle(.bordered)
+            if isEmbedded {
+                VStack(spacing: 6) {
+                    Button("請求權限") {
+                        hotkeyManager.requestAccessibilityPermission()
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .frame(maxWidth: .infinity)
 
-                Button("開啟系統設定") {
-                    hotkeyManager.openAccessibilitySettings()
+                    Button("開啟系統設定") {
+                        hotkeyManager.openAccessibilitySettings()
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.bordered)
+            } else {
+                HStack(spacing: 8) {
+                    Button("請求權限") {
+                        hotkeyManager.requestAccessibilityPermission()
+                    }
+                    .buttonStyle(.bordered)
+
+                    Button("開啟系統設定") {
+                        hotkeyManager.openAccessibilitySettings()
+                    }
+                    .buttonStyle(.bordered)
+                }
             }
         }
-        .padding()
+        .padding(sectionPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(nsColor: .controlBackgroundColor))
         .cornerRadius(8)
@@ -207,9 +246,9 @@ struct SettingsView: View {
     // MARK: - General
 
     private var generalSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: sectionSpacing) {
             Text("一般")
-                .font(.headline)
+                .font(isEmbedded ? .subheadline.weight(.semibold) : .headline)
 
             Toggle(isOn: Binding(
                 get: { launchAtLogin.isEnabled },
@@ -237,7 +276,7 @@ struct SettingsView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding()
+        .padding(sectionPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(nsColor: .controlBackgroundColor))
         .cornerRadius(8)
@@ -246,10 +285,10 @@ struct SettingsView: View {
     // MARK: - Exclusion List
 
     private var exclusionSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: sectionSpacing) {
             HStack {
                 Text("排除的 App")
-                    .font(.headline)
+                    .font(isEmbedded ? .subheadline.weight(.semibold) : .headline)
                 Spacer()
                 Button(action: pickAppToExclude) {
                     Label("加入…", systemImage: "plus")
@@ -277,7 +316,7 @@ struct SettingsView: View {
                 }
             }
         }
-        .padding()
+        .padding(sectionPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(nsColor: .controlBackgroundColor))
         .cornerRadius(8)
@@ -320,33 +359,52 @@ struct SettingsView: View {
     // MARK: - Update
 
     private var updateSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: sectionSpacing) {
             Text("關於與更新")
-                .font(.headline)
+                .font(isEmbedded ? .subheadline.weight(.semibold) : .headline)
 
-            HStack {
-                Text("目前版本：")
-                    .foregroundStyle(.secondary)
-                Text("v\(updateChecker.currentVersion)")
-                    .font(.system(.body, design: .monospaced))
-                Spacer()
-                Button(action: { updateChecker.check() }) {
-                    if case .checking = updateChecker.state {
-                        HStack(spacing: 6) {
+            if isEmbedded {
+                HStack {
+                    Text("v\(updateChecker.currentVersion)")
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Button(action: { updateChecker.check() }) {
+                        if case .checking = updateChecker.state {
                             ProgressView().controlSize(.small)
-                            Text("檢查中…")
+                        } else {
+                            Text("檢查更新")
                         }
-                    } else {
-                        Text("檢查更新")
                     }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .disabled({ if case .checking = updateChecker.state { return true } else { return false } }())
                 }
-                .buttonStyle(.bordered)
-                .disabled({ if case .checking = updateChecker.state { return true } else { return false } }())
+            } else {
+                HStack {
+                    Text("目前版本：")
+                        .foregroundStyle(.secondary)
+                    Text("v\(updateChecker.currentVersion)")
+                        .font(.system(.body, design: .monospaced))
+                    Spacer()
+                    Button(action: { updateChecker.check() }) {
+                        if case .checking = updateChecker.state {
+                            HStack(spacing: 6) {
+                                ProgressView().controlSize(.small)
+                                Text("檢查中…")
+                            }
+                        } else {
+                            Text("檢查更新")
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled({ if case .checking = updateChecker.state { return true } else { return false } }())
+                }
             }
 
             updateStatusView
         }
-        .padding()
+        .padding(sectionPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(nsColor: .controlBackgroundColor))
         .cornerRadius(8)
